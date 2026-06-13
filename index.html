@@ -215,6 +215,8 @@ var H2H={'Argentina_Brazil':{a:4,d:2,b:3},'France_Germany':{f:3,d:1,g:2},'Englan
 var VENUES={'Mexico':{home:10,alt:2240,clim:'高原',temp:22},'USA':{home:8,alt:200,clim:'温带',temp:24},'Canada':{home:6,alt:100,clim:'温带',temp:20},'default':{home:0,alt:200,clim:'温带',temp:22}};
 
 var NAME_MAP={'墨西哥':'Mexico','南非':'South Africa','捷克':'Czech Republic','韩国':'South Korea','加拿大':'Canada','波黑':'Bosnia & Herzegovina','卡塔尔':'Qatar','瑞士':'Switzerland','巴西':'Brazil','摩洛哥':'Morocco','海地':'Haiti','苏格兰':'Scotland','美国':'USA','巴拉圭':'Paraguay','澳大利亚':'Australia','土耳其':'Türkiye','德国':'Germany','库拉索':'Curaçao','科特迪瓦':'Ivory Coast','厄瓜多尔':'Ecuador','荷兰':'Netherlands','日本':'Japan','瑞典':'Sweden','突尼斯':'Tunisia','比利时':'Belgium','埃及':'Egypt','伊朗':'Iran','新西兰':'New Zealand','西班牙':'Spain','佛得角':'Cape Verde','沙特阿拉伯':'Saudi Arabia','乌拉圭':'Uruguay','法国':'France','塞内加尔':'Senegal','伊拉克':'Iraq','挪威':'Norway','阿根廷':'Argentina','阿尔及利亚':'Algeria','奥地利':'Austria','约旦':'Jordan','葡萄牙':'Portugal','刚果(金)':'DR Congo','乌兹别克斯坦':'Uzbekistan','哥伦比亚':'Colombia','英格兰':'England','克罗地亚':'Croatia','加纳':'Ghana','巴拿马':'Panama'};
+var REV_NAME={};for(var k in NAME_MAP)REV_NAME[NAME_MAP[k]]=k;
+function cnName(en){return REV_NAME[en]||en;}
 
 var GROUPS={A:['墨西哥','南非','捷克','韩国'],B:['加拿大','波黑','卡塔尔','瑞士'],C:['巴西','摩洛哥','海地','苏格兰'],D:['美国','巴拉圭','澳大利亚','土耳其'],E:['德国','库拉索','科特迪瓦','厄瓜多尔'],F:['荷兰','日本','瑞典','突尼斯'],G:['比利时','埃及','伊朗','新西兰'],H:['西班牙','佛得角','沙特阿拉伯','乌拉圭'],I:['法国','塞内加尔','伊拉克','挪威'],J:['阿根廷','阿尔及利亚','奥地利','约旦'],K:['葡萄牙','刚果(金)','乌兹别克斯坦','哥伦比亚'],L:['英格兰','克罗地亚','加纳','巴拿马']};
 
@@ -612,9 +614,9 @@ function renderTeams(){
     var styleNames={power:'力量型',tech:'技术型',def:'防守型',tiki:'传控型',flair:'天赋型',fight:'硬朗型',total:'全能型'};
 
     // 近期状态
-    var formScore=getFormScore(t.n),formLabel=formScore>=70?'🔥 状态正佳':(formScore>=55?'👍 状态良好':(formScore>=40?'➖ 状态一般':'👎 状态低迷'));
+    var formScore=getFormScore(cnName(t.n)),formLabel=formScore>=70?'🔥 状态正佳':(formScore>=55?'👍 状态良好':(formScore>=40?'➖ 状态一般':'👎 状态低迷'));
 
-    h+='<div class="team-card"><h3>'+t.n+' <span style="font-size:11px;color:'+gradeColor+'">['+grade+']</span></h3>'+
+    h+='<div class="team-card"><h3>'+cnName(t.n)+' <span style="font-size:11px;color:'+gradeColor+'">['+grade+']</span></h3>'+
       '<div class="trank">FIFA #'+d.r+' · '+styleNames[d.style]+' · 均龄'+d.age+'岁 · 身高'+d.ht+'cm</div>'+
       '<div class="tstats"><div class="tstat"><div class="tsv" style="color:'+gradeColor+'">'+score+'</div><div class="tsn">综合评分</div></div>'+
       '<div class="tstat"><div class="tsv">'+formScore+'</div><div class="tsn">近期状态</div></div>'+
@@ -645,7 +647,7 @@ function renderFactors(){
     h+='</div>';}
   h+='</div></div><div class="card"><div class="sec" style="font-size:13px">📊 48队综合评分排名</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:5px">';
   var all=[];for(var k in TEAM_DB)all.push({n:k,d:TEAM_DB[k]});all.sort(function(a,b){return b.d.star-a.d.star;});
-  for(var i=0;i<all.length;i++){var t=all[i],sc=Math.round(t.d.star*0.30+t.d.coach*0.15+t.d.lg*0.15+t.d.exp*0.15+t.d.yth*0.15+t.d.gk*0.10),col=sc>=80?'#ffb020':(sc>=60?'#6c5ce7':'#888');h+='<div style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#0d1130;border-radius:6px"><span style="font-size:10px;color:#888;width:22px">'+(i+1)+'</span><span style="font-size:11px;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t.n+'</span><span style="font-size:11px;font-weight:700;color:'+col+'">'+sc+'</span></div>';}
+  for(var i=0;i<all.length;i++){var t=all[i],sc=Math.round(t.d.star*0.30+t.d.coach*0.15+t.d.lg*0.15+t.d.exp*0.15+t.d.yth*0.15+t.d.gk*0.10),col=sc>=80?'#ffb020':(sc>=60?'#6c5ce7':'#888');h+='<div style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#0d1130;border-radius:6px"><span style="font-size:10px;color:#888;width:22px">'+(i+1)+'</span><span style="font-size:11px;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cnName(t.n)+'</span><span style="font-size:11px;font-weight:700;color:'+col+'">'+sc+'</span></div>';}
   h+='</div></div>';
   document.getElementById('content').innerHTML=h;
 }
