@@ -181,7 +181,7 @@ function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
 var data=load('discipline_data',{
   fitness:[],   // {date, name, duration, sets, reps, note, time}
   study:[],     // {date, subject, duration, note, time}
-  goals:{fitness:60, study:120}, // 每日目标(分钟)
+  goals:{fitness:30, study:60}, // 每日目标(分钟)
   alarms:[     // {time, label, days, on}
     {time:'07:00',label:'晨间健身',days:[1,1,1,1,1,1,1],on:true},
     {time:'09:00',label:'开始学习',days:[1,1,1,1,1,0,0],on:true},
