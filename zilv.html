@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="自律助手">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f1a">
+<link rel="manifest" href="data:application/json,{'name':'自律助手','short_name':'自律','start_url':'.','display':'standalone','background_color':'#0f0f1a','theme_color':'#3b82f6','icons':[{'src':'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%230f0f1a%22 width=%22100%22 height=%22100%22 rx=%2220%22/><text x=%2250%22 y=%2265%22 text-anchor=%22middle%22 font-size=%2250%22>💪</text></svg>','sizes':'any','type':'image/svg+xml'}]}">
+<title>自律助手 · 健身 + 学习 + 闹钟</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:#0f0f1a;color:#e0e0e0;min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+.app{max-width:500px;margin:0 auto;padding:16px;padding-bottom:100px}
+
+/* header */
+.header{display:flex;justify-content:space-between;align-items:center;padding:20px 0 14px}
+.header h1{font-size:22px;color:#fff}
+.streak-badge{
+  display:flex;align-items:center;gap:4px;padding:6px 14px;
+  background:linear-gradient(135deg,#ff6b35,#ff3860);color:#fff;
+  border-radius:20px;font-size:12px;font-weight:600;
+}
+
+/* date strip */
+.date-strip{display:flex;gap:6px;overflow-x:auto;padding:8px 0 16px;scrollbar-width:none}
+.date-strip::-webkit-scrollbar{display:none}
+.day-chip{
+  min-width:44px;height:60px;border-radius:12px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;
+  background:#1a1a2e;border:1px solid #252540;cursor:pointer;
+  font-size:10px;color:#888;transition:all .2s;flex-shrink:0;
+}
+.day-chip .dow{font-size:11px;margin-bottom:2px}
+.day-chip .dnum{font-size:16px;font-weight:700}
+.day-chip.today{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.day-chip.done{background:#1a2a1a;border-color:#2a4a2a}
+.day-chip.done .dnum{color:#4caf50}
+
+/* section */
+.sec{margin-bottom:18px}
+.sec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sec-title{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:6px}
+.sec-add{
+  width:28px;height:28px;border-radius:50%;background:#3b82f6;
+  color:#fff;font-size:18px;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* progress card */
+.prog-card{
+  background:#1a1a2e;border-radius:16px;padding:16px;border:1px solid #252540;
+}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.prog-label{font-size:13px;color:#aaa}
+.prog-val{font-size:13px;font-weight:600}
+.prog-bar-wrap{height:8px;background:#252540;border-radius:4px;overflow:hidden;margin-bottom:12px}
+.prog-bar{height:100%;border-radius:4px;transition:width .5s}
+.prog-bar.fit{background:linear-gradient(90deg,#3b82f6,#60a5fa)}
+.prog-bar.study{background:linear-gradient(90deg,#ffb020,#ff6b35)}
+
+/* entry card */
+.entry-card{
+  background:#1a1a2e;border-radius:14px;padding:14px;margin-bottom:8px;
+  border:1px solid #252540;cursor:pointer;transition:all .15s;
+}
+.entry-card:hover{background:#1e1e35}
+.entry-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.entry-name{font-size:14px;font-weight:600;color:#fff}
+.entry-time{font-size:11px;color:#888}
+.entry-detail{font-size:12px;color:#777;display:flex;gap:16px}
+.entry-tag{
+  display:inline-block;padding:3px 10px;border-radius:10px;
+  font-size:10px;font-weight:600;
+}
+.entry-tag.fitness{background:rgba(59,130,246,.2);color:#60a5fa}
+.entry-tag.study{background:rgba(255,176,32,.2);color:#ffd56b}
+
+/* alarm card */
+.alarm-card{
+  background:#1a1a2e;border-radius:14px;padding:14px;margin-bottom:8px;
+  border:1px solid #252540;display:flex;align-items:center;gap:12px;
+}
+.alarm-time{font-size:24px;font-weight:700;color:#ffb020;min-width:70px}
+.alarm-info{flex:1}
+.alarm-label{font-size:13px;color:#fff;font-weight:500}
+.alarm-sub{font-size:11px;color:#888;margin-top:2px}
+.alarm-toggle{
+  width:48px;height:28px;border-radius:14px;background:#333;
+  cursor:pointer;position:relative;transition:background .3s;
+}
+.alarm-toggle.on{background:#3b82f6}
+.alarm-toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:22px;height:22px;border-radius:50%;background:#fff;
+  transition:transform .3s;
+}
+.alarm-toggle.on::after{transform:translateX(20px)}
+
+/* modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.modal{
+  background:#1a1a2e;border-radius:20px 20px 0 0;padding:24px;
+  width:100%;max-width:500px;max-height:80vh;overflow-y:auto;
+}
+.modal h3{font-size:18px;color:#fff;margin-bottom:16px}
+.modal input,.modal select,.modal textarea{
+  width:100%;padding:12px 14px;border-radius:10px;border:1px solid #252540;
+  background:#111;color:#fff;font-size:14px;margin-bottom:10px;
+  font-family:inherit;outline:none;
+}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:#3b82f6}
+.modal textarea{resize:none;height:70px}
+.modal-row{display:flex;gap:10px}
+.modal-row>*{flex:1}
+.modal .btn-row{display:flex;gap:10px;margin-top:6px}
+.btn{
+  padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;
+  border:none;cursor:pointer;flex:1;font-family:inherit;
+}
+.btn-purple{background:#3b82f6;color:#fff}
+.btn-outline{background:transparent;color:#888;border:1px solid #333}
+
+/* empty state */
+.empty{text-align:center;padding:30px;color:#555;font-size:13px}
+
+/* nav */
+.nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:500px;background:#1a1a2e;border-top:1px solid #252540;
+  display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:50;
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 0;cursor:pointer;color:#888;font-size:10px;transition:color .2s;
+}
+.nav-item .ni{font-size:20px}
+.nav-item.on{color:#3b82f6}
+
+/* chart */
+.chart-wrap{display:flex;align-items:flex-end;gap:4px;height:100px;padding:4px 0}
+.chart-bar{
+  flex:1;border-radius:4px 4px 0 0;transition:height .5s;min-width:8px;
+}
+
+/* confetti */
+.confetti{position:fixed;pointer-events:none;z-index:200;animation:confFall 1.5s ease-out forwards}
+@keyframes confFall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(400px) rotate(720deg);opacity:0}}
+
+/* toast */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:200;
+  background:#333;color:#fff;padding:10px 24px;border-radius:20px;
+  font-size:13px;opacity:0;transition:opacity .3s;
+}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<nav class="nav" id="nav"></nav>
+<div class="toast" id="toast"></div>
+<div id="modal-container"></div>
+
+<script>
+(function(){
+'use strict';
+var today=new Date().toISOString().slice(0,10); // 2026-06-14
+
+// DATA
+function load(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+var data=load('discipline_data',{
+  fitness:[],   // {date, name, duration, sets, reps, note, time}
+  study:[],     // {date, subject, duration, note, time}
+  goals:{fitness:60, study:120}, // 每日目标(分钟)
+  alarms:[     // {time, label, days, on}
+    {time:'07:00',label:'晨间健身',days:[1,1,1,1,1,1,1],on:true},
+    {time:'09:00',label:'开始学习',days:[1,1,1,1,1,0,0],on:true},
+    {time:'21:30',label:'晚间复盘',days:[1,1,1,1,1,1,1],on:false}
+  ]
+});
+
+// PWA 安装
+var installPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();installPrompt=e;});
+window.addEventListener('appinstalled',function(){installPrompt=null;toast('✅ 已安装到桌面！');});
+
+// NAV
+var currentPage='today';
+function renderNav(){
+  var pages=[
+    {id:'today',label:'今日',icon:'📅'},
+    {id:'calendar',label:'日历',icon:'🗓️'},
+    {id:'fitness',label:'健身',icon:'💪'},
+    {id:'study',label:'学习',icon:'📚'},
+    {id:'alarms',label:'闹钟',icon:'⏰'},
+    {id:'stats',label:'统计',icon:'📊'}
+  ];
+  var h='';
+  for(var i=0;i<pages.length;i++){
+    var p=pages[i];
+    h+='<div class="nav-item'+(p.id===currentPage?' on':'')+'" data-page="'+p.id+'">'+
+      '<div class="ni">'+p.icon+'</div><div>'+p.label+'</div></div>';
+  }
+  document.getElementById('nav').innerHTML=h;
+}
+
+// RENDER TODAY
+function getTodayEntries(type){
+  return data[type].filter(function(e){return e.date===today;});
+}
+function getTodayMinutes(type){
+  return getTodayEntries(type).reduce(function(s,e){return s+(e.duration||0);},0);
+}
+function getTodayGoal(type){return data.goals[type]||60;}
+
+function renderToday(){
+  var fitMin=getTodayMinutes('fitness'),studyMin=getTodayMinutes('study');
+  var fitGoal=getTodayGoal('fitness'),studyGoal=getTodayGoal('study');
+  var fitPct=Math.min(100,Math.round(fitMin/fitGoal*100));
+  var studyPct=Math.min(100,Math.round(studyMin/studyGoal*100));
+  var streak=calcStreak();
+
+  var h='<div class="header"><h1>🏋️ 自律助手</h1><div class="streak-badge">🔥 连续 '+streak+' 天</div></div>';
+
+  // date strip
+  h+='<div class="date-strip">';
+  for(var i=6;i>=0;i--){
+    var d=new Date();d.setDate(d.getDate()-i);
+    var ds=d.toISOString().slice(0,10);
+    var dayDone=(getFitnessMin(ds)+getStudyMin(ds))>0;
+    var cls=ds===today?'today':(dayDone?'done':'');
+    var dows=['日','一','二','三','四','五','六'];
+    h+='<div class="day-chip '+cls+'"><span class="dow">'+dows[d.getDay()]+'</span><span class="dnum">'+d.getDate()+'</span></div>';
+  }
+  h+='</div>';
+
+  // 健身进度
+  h+='<div class="sec"><div class="sec-hd"><div class="sec-title">💪 今日健身</div><span style="color:#888;font-size:12px">'+fitMin+'/'+fitGoal+' 分钟</span></div>';
+  h+='<div class="prog-card"><div class="prog-row"><span class="prog-label">完成度</span><span class="prog-val" style="color:'+(fitPct>=100?'#4caf50':'#3b82f6')+'">'+fitPct+'%</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div>';
+  var fits=getTodayEntries('fitness');
+  if(fits.length===0)h+='<div class="empty">还没有记录，点击下方 + 添加</div>';
+  else for(var i=0;i<fits.length;i++){var e=fits[i];h+='<div class="entry-card" onclick="editEntry(\'fitness\','+i+')"><div class="entry-top"><span class="entry-name">'+esc(e.name)+'</span><span class="entry-time">'+e.time+'</span></div><div class="entry-detail"><span>'+e.duration+'分钟</span>'+(e.bodyPart?'<span>'+e.bodyPart+'</span>':'')+(e.sets?'<span>'+e.sets+'组 × '+(e.reps||0)+'次</span>':'')+'<span class="entry-tag fitness">健身</span></div></div>';}
+  h+='</div></div>';
+
+  // 学习进度
+  h+='<div class="sec"><div class="sec-hd"><div class="sec-title">📚 今日学习</div><span style="color:#888;font-size:12px">'+studyMin+'/'+studyGoal+' 分钟</span></div>';
+  h+='<div class="prog-card"><div class="prog-row"><span class="prog-label">完成度</span><span class="prog-val" style="color:'+(studyPct>=100?'#4caf50':'#ffb020')+'">'+studyPct+'%</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div>';
+  var studies=getTodayEntries('study');
+  if(studies.length===0)h+='<div class="empty">还没有记录，点击下方 + 添加</div>';
+  else for(var i=0;i<studies.length;i++){var e=studies[i];h+='<div class="entry-card" onclick="editEntry(\'study\','+i+')"><div class="entry-top"><span class="entry-name">'+esc(e.subject)+'</span><span class="entry-time">'+e.time+'</span></div><div class="entry-detail"><span>'+e.duration+'分钟</span>'+(e.book?'<span>📖 '+esc(e.book.slice(0,20))+'</span>':'')+(e.note?'<span>'+esc(e.note.slice(0,30))+'</span>':'')+'<span class="entry-tag study">学习</span></div></div>';}
+  h+='</div></div>';
+
+  // quick add buttons
+  h+='<div style="display:flex;gap:10px"><button class="btn btn-purple" onclick="openModal(\'fitness\')">+ 记录健身</button><button class="btn btn-outline" onclick="openModal(\'study\')">+ 记录学习</button></div>';
+
+  // motivational quote
+  var quotes=[
+    {q:'Every decision signs your name.',a:'每一个决定都署着你的名字'},
+    {q:'You are what you do, not what you say you\'ll do.',a:'你的行动定义你，不是你的空话'},
+    {q:'Discipline is choosing between what you want now and what you want most.',a:'自律是在眼前的欲望和最终的渴望之间做选择'},
+    {q:'The pain of discipline is far less than the pain of regret.',a:'自律的痛苦远小于后悔的痛苦'},
+    {q:'Small daily improvements are the key to staggering long-term results.',a:'每天微小的进步是惊人长期成果的关键'},
+    {q:'Motivation gets you started. Habit keeps you going.',a:'动力让你开始，习惯让你持续'},
+    {q:'Don\'t count the days. Make the days count.',a:'别数日子，让每一天都有价值'},
+    {q:'The only bad workout is the one that didn\'t happen.',a:'唯一差的训练是没做的那次'},
+    {q:'It never gets easier. You just get better.',a:'事情不会变简单，只是你变强了'}
+  ];
+  var q=quotes[Math.floor(Math.random()*quotes.length)];
+  h+='<div style="margin-top:16px;padding:16px;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(255,176,32,.05));border-radius:14px;border:1px solid rgba(59,130,246,.15);text-align:center">'+
+    '<div style="font-size:15px;font-style:italic;color:#ccc;line-height:1.6">"'+q.q+'"</div>'+
+    '<div style="font-size:12px;color:#888;margin-top:4px">'+q.a+'</div>'+
+  '</div>';
+
+  document.getElementById('app').innerHTML=h;
+}
+
+function getFitnessMin(ds){
+  return data.fitness.filter(function(e){return e.date===ds;}).reduce(function(s,e){return s+(e.duration||0);},0);
+}
+function getStudyMin(ds){
+  return data.study.filter(function(e){return e.date===ds;}).reduce(function(s,e){return s+(e.duration||0);},0);
+}
+
+// STREAK
+function calcStreak(){
+  var s=0,d=new Date();
+  while(true){
+    var ds=d.toISOString().slice(0,10);
+    if(getFitnessMin(ds)+getStudyMin(ds)>0){s++;d.setDate(d.getDate()-1);}
+    else break;
+  }
+  // 如果今天还没记录，从昨天开始算
+  if(s===0){d.setDate(d.getDate()-1);var ds=d.toISOString().slice(0,10);if(getFitnessMin(ds)+getStudyMin(ds)>0){s++;d.setDate(d.getDate()-2);while(true){ds=d.toISOString().slice(0,10);if(getFitnessMin(ds)+getStudyMin(ds)>0){s++;d.setDate(d.getDate()-1);}else break;}}}
+  return s;
+}
+
+// RENDER FITNESS PAGE
+function renderFitness(){
+  var all=data.fitness.slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.time.localeCompare(a.time);});
+  var h='<div class="header"><h1>💪 健身记录</h1></div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">';
+  h+='<button class="btn btn-purple" onclick="openModal(\'fitness\')">+ 添加训练</button>';
+  h+='<button class="btn btn-outline" style="flex:none;padding:12px 16px" onclick="setGoal(\'fitness\')">🎯 目标: '+data.goals.fitness+'分钟/天</button>';
+  h+='</div>';
+  // weekly chart
+  h+='<div class="sec"><div class="sec-title" style="font-size:13px">📊 近7天健身 (分钟)</div><div class="prog-card"><div class="chart-wrap">';
+  var maxF=0;for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);var m=getFitnessMin(ds);if(m>maxF)maxF=m;}
+  for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);var m=getFitnessMin(ds);var hh=(maxF>0?Math.max(4,m/maxF*100):4);var isToday=ds===today;h+='<div style="flex:1;text-align:center"><div class="chart-bar" style="height:'+hh+'px;background:'+(isToday?'#3b82f6':'#252540')+'"></div><div style="font-size:9px;color:#888;margin-top:4px">'+(d.getMonth()+1)+'/'+d.getDate()+'</div><div style="font-size:10px;color:#aaa">'+m+'</div></div>';}
+  h+='</div></div></div>';
+  if(all.length===0)h+='<div class="empty">还没有健身记录</div>';
+  else for(var i=0;i<all.length;i++){var e=all[i];h+='<div class="entry-card" onclick="editEntry(\'fitness\','+data.fitness.indexOf(e)+')"><div class="entry-top"><span class="entry-name">'+esc(e.name)+'</span><span class="entry-time">'+e.date+' '+e.time+'</span></div><div class="entry-detail"><span>'+e.duration+'分钟</span>'+(e.sets?'<span>'+e.sets+'组 × '+(e.reps||0)+'次</span>':'')+'<span class="entry-tag fitness">健身</span></div></div>';}
+  document.getElementById('app').innerHTML=h;
+}
+
+// RENDER STUDY PAGE
+function renderStudy(){
+  var all=data.study.slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.time.localeCompare(a.time);});
+  var h='<div class="header"><h1>📚 学习记录</h1></div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">';
+  h+='<button class="btn btn-purple" onclick="openModal(\'study\')">+ 添加学习</button>';
+  h+='<button class="btn btn-outline" style="flex:none;padding:12px 16px" onclick="setGoal(\'study\')">🎯 目标: '+data.goals.study+'分钟/天</button>';
+  h+='</div>';
+  h+='<div class="sec"><div class="sec-title" style="font-size:13px">📊 近7天学习 (分钟)</div><div class="prog-card"><div class="chart-wrap">';
+  var maxS=0;for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);var m=getStudyMin(ds);if(m>maxS)maxS=m;}
+  for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);var m=getStudyMin(ds);var hh=(maxS>0?Math.max(4,m/maxS*100):4);var isToday=ds===today;h+='<div style="flex:1;text-align:center"><div class="chart-bar" style="height:'+hh+'px;background:'+(isToday?'#ffb020':'#252540')+'"></div><div style="font-size:9px;color:#888;margin-top:4px">'+(d.getMonth()+1)+'/'+d.getDate()+'</div><div style="font-size:10px;color:#aaa">'+m+'</div></div>';}
+  h+='</div></div></div>';
+  if(all.length===0)h+='<div class="empty">还没有学习记录</div>';
+  else for(var i=0;i<all.length;i++){var e=all[i];h+='<div class="entry-card" onclick="editEntry(\'study\','+data.study.indexOf(e)+')"><div class="entry-top"><span class="entry-name">'+esc(e.subject)+'</span><span class="entry-time">'+e.date+' '+e.time+'</span></div><div class="entry-detail"><span>'+e.duration+'分钟</span>'+(e.note?'<span>'+esc(e.note.slice(0,30))+'</span>':'')+'<span class="entry-tag study">学习</span></div></div>';}
+  document.getElementById('app').innerHTML=h;
+}
+
+// RENDER ALARMS PAGE
+function renderAlarms(){
+  var h='<div class="header"><h1>⏰ 闹钟提醒</h1></div>';
+  h+='<div style="margin-bottom:14px"><button class="btn btn-purple" onclick="openAlarmModal()">+ 添加闹钟</button></div>';
+  for(var i=0;i<data.alarms.length;i++){
+    var a=data.alarms[i];
+    h+='<div class="alarm-card"><div class="alarm-time">'+a.time+'</div><div class="alarm-info"><div class="alarm-label">'+esc(a.label)+'</div><div class="alarm-sub">'+renderDays(a.days)+'</div></div><div class="alarm-toggle'+(a.on?' on':'')+'" data-ai="'+i+'" onclick="toggleAlarm('+i+')"></div></div>';
+  }
+  // 权限提示
+  h+='<div class="prog-card" style="margin-top:12px;font-size:11px;color:#888;line-height:1.6"><b>💡 提示：</b>浏览器闹钟需要允许通知权限。打开本页面时，浏览器会询问是否允许通知，请点击「允许」。如果之前拒绝了，可以在浏览器设置中重新开启。</div>';
+  document.getElementById('app').innerHTML=h;
+  // Also request notification permission
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+  // Check alarms every 30s
+  checkAlarms();
+}
+
+function renderDays(days){
+  var labels=['日','一','二','三','四','五','六'];
+  var h='';
+  for(var i=0;i<7;i++)h+='<span style="color:'+(days[i]?'#3b82f6':'#444')+';margin-right:4px;font-size:11px">'+labels[i]+'</span>';
+  return h;
+}
+
+function toggleAlarm(i){
+  data.alarms[i].on=!data.alarms[i].on;
+  persist();
+  renderAlarms();
+}
+
+// RENDER STATS PAGE
+function renderStats(){
+  var streak=calcStreak();
+  var totalFit=data.fitness.reduce(function(s,e){return s+(e.duration||0);},0);
+  var totalStudy=data.study.reduce(function(s,e){return s+(e.duration||0);},0);
+  var totalDays=0;
+  var allDates={};
+  data.fitness.forEach(function(e){allDates[e.date]=1;});
+  data.study.forEach(function(e){allDates[e.date]=1;});
+  totalDays=Object.keys(allDates).length;
+
+  var h='<div class="header"><h1>📊 数据统计</h1></div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'+
+    '<div class="prog-card" style="text-align:center"><div style="font-size:36px;font-weight:900;color:#ffb020">'+streak+'</div><div style="font-size:11px;color:#888">🔥 连续打卡天数</div></div>'+
+    '<div class="prog-card" style="text-align:center"><div style="font-size:36px;font-weight:900;color:#3b82f6">'+totalDays+'</div><div style="font-size:11px;color:#888">📅 累计活跃天数</div></div>'+
+    '<div class="prog-card" style="text-align:center"><div style="font-size:36px;font-weight:900;color:#60a5fa">'+(totalFit/60).toFixed(1)+'</div><div style="font-size:11px;color:#888">💪 累计健身(小时)</div></div>'+
+    '<div class="prog-card" style="text-align:center"><div style="font-size:36px;font-weight:900;color:#ffd56b">'+(totalStudy/60).toFixed(1)+'</div><div style="font-size:11px;color:#888">📚 累计学习(小时)</div></div>'+
+  '</div>';
+
+  // 本月热力图
+  h+='<div class="prog-card"><div style="font-size:13px;color:#fff;font-weight:600;margin-bottom:10px">📅 本月打卡日历</div>';
+  var now=new Date();var y=now.getFullYear(),m=now.getMonth();
+  var firstDay=new Date(y,m,1).getDay();
+  var daysInMonth=new Date(y,m+1,0).getDate();
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">';
+  var dowLabels=['日','一','二','三','四','五','六'];
+  for(var i=0;i<7;i++)h+='<div style="font-size:9px;color:#888">'+dowLabels[i]+'</div>';
+  for(var i=0;i<firstDay;i++)h+='<div></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var ds=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    var min=getFitnessMin(ds)+getStudyMin(ds);
+    var intensity=min===0?0:(min<30?1:(min<60?2:(min<120?3:4)));
+    var colors=['#1a1a2e','#1a2a1a','#2a4a2a','#4a6a2a','#3b82f6'];
+    var isToday=ds===today;
+    h+='<div style="aspect-ratio:1;background:'+colors[intensity]+';border-radius:4px;'+(isToday?'border:2px solid #ffb020;':'')+'display:flex;align-items:center;justify-content:center;font-size:10px;color:'+(intensity>2?'#fff':'#555')+'">'+d+'</div>';
+  }
+  h+='</div><div style="display:flex;gap:12px;margin-top:8px;font-size:10px;color:#888;justify-content:center"><span>⬜ 未打卡</span><span style="color:#1a2a1a">🟩 少量</span><span style="color:#2a4a2a">🟩 一般</span><span style="color:#3b82f6">🟪 充足</span></div>';
+  h+='</div>';
+
+  document.getElementById('app').innerHTML=h;
+}
+
+// MODAL
+var editIndex=-1,editType='';
+function openModal(type,idx){
+  editType=type;editIndex=(idx!==undefined)?idx:-1;
+  var entry=editIndex>=0?data[type][editIndex]:null;
+  var title=type==='fitness'?'💪 '+(entry?'编辑训练':'添加训练'):'📚 '+(entry?'编辑学习':'添加学习');
+  var h='<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal"><h3>'+title+'</h3>';
+  if(type==='fitness'){
+    h+='<input id="mfName" placeholder="训练项目 (如: 卧推、深蹲)" value="'+(entry?esc(entry.name):'')+'">';
+    var bodyParts=['胸部','背部','腿部','肩部','手臂','核心','有氧','全身','其他'];
+    h+='<div style="font-size:12px;color:#888;margin-bottom:6px">训练部位</div>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="mfBodyPart">';
+    for(var i=0;i<bodyParts.length;i++){
+      var sel=entry&&entry.bodyPart===bodyParts[i];
+      h+='<span class="day-chip" data-bp="'+bodyParts[i]+'" style="min-width:44px;height:32px;font-size:11px;'+(sel?'background:#3b82f6;color:#fff;border-color:#3b82f6':'')+'" onclick="selectBodyPart(this)">'+bodyParts[i]+'</span>';
+    }
+    h+='</div>';
+    h+='<div class="modal-row"><input id="mfDur" type="number" placeholder="时长(分钟)" value="'+(entry?entry.duration:'')+'"><input id="mfSets" type="number" placeholder="组数" value="'+(entry?(entry.sets||''):'')+'"></div>';
+    h+='<input id="mfReps" type="number" placeholder="每组次数 (选填)" value="'+(entry?(entry.reps||''):'')+'">';
+    h+='<input id="mfFitNote" placeholder="备注 (如: 重量、感受)" value="'+(entry?(entry.note||''):'')+'">';
+  }else{
+    h+='<input id="mfSubject" placeholder="科目 (如: 英语、编程)" value="'+(entry?esc(entry.subject):'')+'">';
+    h+='<input id="mfBook" placeholder="📖 书名/课程名 (选填)" value="'+(entry?(entry.book||''):'')+'">';
+    h+='<input id="mfDur" type="number" placeholder="时长(分钟)" value="'+(entry?entry.duration:'')+'">';
+    h+='<textarea id="mfNote" placeholder="笔记/心得 (选填)">'+(entry?(entry.note||''):'')+'</textarea>';
+  }
+  h+='<div class="btn-row"><button class="btn btn-outline" onclick="closeModal()">取消</button>'+
+    (editIndex>=0?'<button class="btn btn-outline" style="color:#ff3860" onclick="deleteEntry()">删除</button>':'')+
+    '<button class="btn btn-purple" onclick="saveEntry()">保存</button></div></div></div>';
+  document.getElementById('modal-container').innerHTML=h;
+  setTimeout(function(){
+    var inp=document.getElementById('mfName')||document.getElementById('mfSubject');
+    if(inp)inp.focus();
+  },100);
+}
+
+function openAlarmModal(){
+  var h='<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal"><h3>⏰ 添加闹钟</h3>'+
+    '<input id="maTime" type="time" value="08:00">'+
+    '<input id="maLabel" placeholder="闹钟名称">'+
+    '<div style="font-size:12px;color:#888;margin-bottom:8px">重复日期</div>'+
+    '<div style="display:flex;gap:6px;margin-bottom:12px" id="maDays">';
+  var labels=['日','一','二','三','四','五','六'];
+  for(var i=0;i<7;i++)h+='<div class="day-chip" data-di="'+i+'" style="min-width:36px;height:36px;font-size:11px" onclick="this.classList.toggle(\'on\');this.classList.toggle(\'today\')">'+labels[i]+'</div>';
+  h+='</div><div class="btn-row"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-purple" onclick="saveAlarm()">保存</button></div></div></div>';
+  document.getElementById('modal-container').innerHTML=h;
+}
+
+function closeModal(){document.getElementById('modal-container').innerHTML='';}
+
+function saveEntry(){
+  var type=editType;
+  var entry={date:today,time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})};
+  if(type==='fitness'){
+    entry.name=document.getElementById('mfName').value.trim()||'训练';
+    entry.bodyPart=document.getElementById('mfBodyPart').getAttribute('data-sel')||'全身';
+    entry.duration=parseInt(document.getElementById('mfDur').value)||0;
+    entry.sets=parseInt(document.getElementById('mfSets').value)||0;
+    entry.reps=parseInt(document.getElementById('mfReps').value)||0;
+    var fn=document.getElementById('mfFitNote');
+    entry.note=fn?fn.value.trim():'';
+  }else{
+    entry.subject=document.getElementById('mfSubject').value.trim()||'学习';
+    entry.book=(document.getElementById('mfBook')||{}).value.trim()||'';
+    entry.duration=parseInt(document.getElementById('mfDur').value)||0;
+    entry.note=(document.getElementById('mfNote')||{}).value||'';
+  }
+  if(entry.duration<=0){toast('请输入时长');return;}
+  if(editIndex>=0)data[type][editIndex]=entry;
+  else data[type].push(entry);
+  persist();
+  closeModal();
+  renderPage();
+  // 完成目标撒花
+  var goal=data.goals[type]||60;
+  var todayMin=getTodayMinutes(type);
+  if(todayMin>=goal)spawnConfetti();
+}
+
+function deleteEntry(){
+  if(editIndex>=0){data[editType].splice(editIndex,1);persist();}
+  closeModal();renderPage();
+}
+
+function saveAlarm(){
+  var time=document.getElementById('maTime').value;
+  var label=document.getElementById('maLabel').value.trim()||'提醒';
+  var dayChips=document.querySelectorAll('#maDays .day-chip');
+  var days=[];
+  for(var i=0;i<dayChips.length;i++)days.push(dayChips[i].classList.contains('on')||dayChips[i].classList.contains('today')?1:0);
+  data.alarms.push({time:time,label:label,days:days,on:true});
+  persist();closeModal();renderPage();
+}
+
+function selectBodyPart(el){
+  var chips=document.querySelectorAll('#mfBodyPart .day-chip');
+  for(var i=0;i<chips.length;i++){chips[i].style.background='';chips[i].style.color='';chips[i].style.borderColor='';}
+  el.style.background='#3b82f6';el.style.color='#fff';el.style.borderColor='#3b82f6';
+  document.getElementById('mfBodyPart').setAttribute('data-sel',el.getAttribute('data-bp'));
+}
+
+function setGoal(type){
+  var cur=data.goals[type];
+  var val=prompt((type==='fitness'?'健身':'学习')+'每日目标 (分钟)',cur);
+  if(val&&!isNaN(val)&&parseInt(val)>0){data.goals[type]=parseInt(val);persist();renderPage();}
+}
+
+// ALARM CHECK
+var lastAlarmCheck={};
+function checkAlarms(){
+  var now=new Date();
+  var ct=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+  var dow=now.getDay();
+  for(var i=0;i<data.alarms.length;i++){
+    var a=data.alarms[i];
+    if(!a.on||!a.days[dow])continue;
+    if(a.time===ct&&!lastAlarmCheck[i+'_'+ct]){
+      lastAlarmCheck[i+'_'+ct]=true;
+      if('Notification' in window && Notification.permission==='granted'){
+        new Notification('⏰ '+a.label,{body:'时间到了！该去'+a.label+'了 💪',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">⏰</text></svg>'});
+      }
+      toast('⏰ '+a.label+' — 时间到了！');
+    }
+  }
+  setTimeout(checkAlarms,30000);
+}
+
+// HELPERS
+function persist(){save('discipline_data',data);}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function toast(msg){
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2000);
+}
+function spawnConfetti(){
+  for(var i=0;i<30;i++){var c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'%';c.style.top='-10px';c.style.width=(6+Math.random()*8)+'px';c.style.height=(6+Math.random()*8)+'px';c.style.background=['#ffb020','#3b82f6','#ff3860','#4caf50','#60a5fa'][Math.floor(Math.random()*5)];c.style.borderRadius=Math.random()>.5?'50%':'2px';c.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(c);setTimeout(function(){c.remove();},2000);}
+}
+
+// ROUTING
+// CALENDAR PAGE
+function renderCalendar(){
+  var now=new Date();var y=now.getFullYear(),m=now.getMonth();
+  var firstDay=new Date(y,m,1).getDay();
+  var daysInMonth=new Date(y,m+1,0).getDate();
+  var dows=['日','一','二','三','四','五','六'];
+  var months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+  var h='<div class="header"><h1>🗓️ '+y+'年 '+months[m]+'</h1></div>';
+  h+='<div class="prog-card">';
+  // 星期头
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;margin-bottom:6px">';
+  for(var i=0;i<7;i++)h+='<div style="font-size:11px;color:#888;padding:4px">'+dows[i]+'</div>';
+  h+='</div>';
+  // 日期格
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center">';
+  for(var i=0;i<firstDay;i++)h+='<div style="aspect-ratio:1"></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var ds=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    var fMin=getFitnessMin(ds), sMin=getStudyMin(ds);
+    var total=fMin+sMin;
+    var intensity=total===0?0:(total<30?1:(total<60?2:(total<120?3:4)));
+    var colors=['#1a1a2e','#1a2a2a','#2a4a2a','#4a6a2a','#3b82f6'];
+    var isToday=ds===today;
+    var hasFit=fMin>0, hasStudy=sMin>0;
+    h+='<div onclick="openDayDetail(\''+ds+'\')" style="aspect-ratio:1;background:'+colors[intensity]+';border-radius:8px;'+
+      (isToday?'border:2px solid #ffb020;':'')+'cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;font-size:12px;color:'+(intensity>2?'#fff':'#888')+';position:relative">'+
+      '<span style="font-weight:'+(isToday?'700':'400')+'">'+d+'</span>'+
+      (hasFit?'<div style="display:flex;gap:2px;margin-top:2px"><span style="width:5px;height:5px;border-radius:50%;background:#3b82f6"></span>'+(hasStudy?'<span style="width:5px;height:5px;border-radius:50%;background:#ffb020"></span>':'')+'</div>':'')+
+    '</div>';
+  }
+  h+='</div>';
+  h+='<div style="display:flex;gap:12px;margin-top:10px;font-size:10px;color:#888;justify-content:center;flex-wrap:wrap">'+
+    '<span>⬜ 未打卡</span><span>🟩 少量</span><span>🟩🟩 一般</span><span>🟪 充足</span>'+
+    '<span style="margin-left:8px">💜=健身 🟠=学习</span></div>';
+  h+='</div>';
+
+  // 今日摘要
+  var todayFit=getTodayMinutes('fitness'),todayStudy=getTodayMinutes('study');
+  h+='<div class="sec" style="margin-top:14px"><div class="sec-title">📅 '+months[m]+' '+now.getDate()+'日 摘要</div>';
+  h+='<div class="prog-card">';
+  h+='<div style="display:flex;gap:12px;text-align:center">';
+  h+='<div style="flex:1"><div style="font-size:28px;font-weight:900;color:#3b82f6">'+todayFit+'</div><div style="font-size:10px;color:#888">💪 健身(分钟)</div></div>';
+  h+='<div style="flex:1"><div style="font-size:28px;font-weight:900;color:#ffb020">'+todayStudy+'</div><div style="font-size:10px;color:#888">📚 学习(分钟)</div></div>';
+  h+='<div style="flex:1"><div style="font-size:28px;font-weight:900;color:#4caf50">'+(todayFit+todayStudy)+'</div><div style="font-size:10px;color:#888">⏱️ 总计(分钟)</div></div>';
+  h+='</div></div></div>';
+
+  document.getElementById('app').innerHTML=h;
+}
+
+// 点击日历某天查看详情
+window.openDayDetail=function(ds){
+  var fits=data.fitness.filter(function(e){return e.date===ds;});
+  var studies=data.study.filter(function(e){return e.date===ds;});
+  var fMin=fits.reduce(function(s,e){return s+(e.duration||0);},0);
+  var sMin=studies.reduce(function(s,e){return s+(e.duration||0);},0);
+  var msg=ds+'\n\n💪 健身: '+fMin+'分钟';
+  if(fits.length>0)for(var i=0;i<fits.length;i++){var e=fits[i];msg+='\n  · '+e.name+(e.bodyPart?' ('+e.bodyPart+')':'')+' '+e.duration+'分钟';}
+  msg+='\n\n📚 学习: '+sMin+'分钟';
+  if(studies.length>0)for(var i=0;i<studies.length;i++){var e=studies[i];msg+='\n  · '+e.subject+(e.book?' - '+e.book:'')+' '+e.duration+'分钟';}
+  if(fits.length===0&&studies.length===0)msg+='\n\n😴 这天没有记录...';
+  alert(msg);
+};
+
+function renderPage(){
+  if(currentPage==='today')renderToday();
+  else if(currentPage==='calendar')renderCalendar();
+  else if(currentPage==='fitness')renderFitness();
+  else if(currentPage==='study')renderStudy();
+  else if(currentPage==='alarms')renderAlarms();
+  else if(currentPage==='stats')renderStats();
+  renderNav();
+}
+
+// Service Worker (离线缓存)
+if('serviceWorker' in navigator){
+  var swCode='self.addEventListener("install",function(e){e.waitUntil(caches.open("v2").then(function(c){return c.addAll(["./"]);}))});self.addEventListener("fetch",function(e){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request);}))});';
+  var swBlob=new Blob([swCode],{type:'application/javascript'});
+  var swUrl=URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(function(){});
+}
+
+// INIT
+renderNav();
+renderPage();
+
+// Nav clicks
+document.getElementById('nav').addEventListener('click',function(e){
+  var item=e.target.closest('.nav-item');
+  if(!item)return;
+  currentPage=item.getAttribute('data-page');
+  renderPage();
+});
+
+// 导出全局函数（必须在任何HTML onclick调用前完成）
+window.openModal=openModal;
+window.closeModal=closeModal;
+window.saveEntry=saveEntry;
+window.deleteEntry=deleteEntry;
+window.selectBodyPart=selectBodyPart;
+window.setGoal=setGoal;
+window.toggleAlarm=toggleAlarm;
+window.saveAlarm=saveAlarm;
+window.openAlarmModal=openAlarmModal;
+window.editEntry=function(type,idx){openModal(type,idx);};
+
+// 初始化
+if('Notification' in window && Notification.permission==='default'){
+  try{setTimeout(function(){Notification.requestPermission();},2000);}catch(e){}
+}
+try{checkAlarms();}catch(e){console.log('闹钟初始化失败',e);}
+
+})();
+</script>
+</body>
+</html>
