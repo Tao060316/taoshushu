@@ -449,9 +449,13 @@ function toggleAlarm(i){
   renderAlarms();
 }
 
-// 左滑删除
-var swipeStartX=0,swipeEl=null;
+// 左滑删除（改：滑开停住，点其他地方才收回）
+var swipeStartX=0,swipeEl=null,swipeOpen=null;
 document.addEventListener('touchstart',function(e){
+  // 之前打开的先收回
+  if(swipeOpen&&swipeOpen!==e.target.closest('.swipe-item')){
+    swipeOpen.style.transform='translateX(0)';swipeOpen=null;
+  }
   var item=e.target.closest('.swipe-item');
   if(item){swipeEl=item;swipeStartX=e.touches[0].clientX;}
 },true);
@@ -459,14 +463,13 @@ document.addEventListener('touchmove',function(e){
   if(!swipeEl)return;
   var dx=e.touches[0].clientX-swipeStartX;
   if(dx<-30){swipeEl.style.transform='translateX(-80px)';}
-  else{swipeEl.style.transform='translateX(0)';}
+  else if(dx>20){swipeEl.style.transform='translateX(0)';}
 },true);
 document.addEventListener('touchend',function(){
   if(!swipeEl)return;
-  setTimeout(function(){
-    if(swipeEl)swipeEl.style.transform='translateX(0)';
-    swipeEl=null;
-  },200);
+  if(swipeEl.style.transform==='translateX(-80px)'){swipeOpen=swipeEl;} // 停住
+  else{swipeOpen=null;}
+  swipeEl=null;
 },true);
 
 // RENDER STATS PAGE
