@@ -186,6 +186,7 @@ var data=load('discipline_data',{
   longGoals:[],  // {title, deadline, done}
   weekPlan:{},   // { '0':['胸+三头'], '1':['背+二头','英语2h'], ... } 周日=0
   goalProgress:{} // { 'goalTitle': {current:3, target:20} }
+});
   alarms:[     // {time, label, days, on}
     {time:'07:00',label:'晨间健身',days:[1,1,1,1,1,1,1],on:true},
     {time:'09:00',label:'开始学习',days:[1,1,1,1,1,0,0],on:true},
@@ -900,6 +901,13 @@ window.testAlarm=function(){
 };
 
 // HELPERS
+// 迁移旧数据，补全新字段
+if(!data.weekPlan)data.weekPlan={};
+if(!data.goalProgress)data.goalProgress={};
+if(!data.shortGoals)data.shortGoals=[];
+if(!data.longGoals)data.longGoals=[];
+if(!data.goals)data.goals={fitness:60,study:120};
+
 function persist(){save('discipline_data',data);}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function toast(msg){
