@@ -351,10 +351,19 @@ function renderAlarms(){
         '<div class="alarm-time">'+a.time+'</div>'+
         '<div class="alarm-info"><div class="alarm-label">'+esc(a.label)+'</div><div class="alarm-sub">'+renderDays(a.days)+'</div></div>'+
         '<div class="alarm-toggle'+(a.on?' on':'')+'" onclick="toggleAlarm('+i+')"></div>'+
+        '<div style="font-size:10px;color:#3b82f6;cursor:pointer;margin-left:4px" onclick="event.stopPropagation();exportToCalendar('+i+')">📤</div>'+
       '</div></div>';
   }
-  // 提示
-  h+='<div class="prog-card" style="margin-top:12px;font-size:11px;color:#888;line-height:1.6"><b>💡 提示：</b>闹钟响起需要页面保持打开 + 允许通知权限。⬅️ <b>左滑可删除</b>闹钟。</div>';
+  // 提示 + 日历导出
+  h+='<div class="prog-card" style="margin-top:12px;font-size:11px;color:#888;line-height:1.6">'+
+    '<b>🔔 让闹钟真正可靠的方法：</b><br>'+
+    '1️⃣ 点闹钟右边的 <b style="color:#3b82f6">📤</b> → 下载 .ics 文件<br>'+
+    '2️⃣ 点击下载的文件 → 自动导入<b>系统日历</b><br>'+
+    '3️⃣ 系统日历的通知<span style="color:#4caf50">永远可靠</span>，关浏览器也不影响！<br><br>'+
+    '<button class="btn btn-outline" style="padding:6px 12px;font-size:11px" onclick="exportAllAlarms()">📤 一键导出全部闹钟</button>'+
+    '<button class="btn btn-outline" style="padding:6px 12px;font-size:11px;margin-left:6px" onclick="testAlarm()">🔔 测试网页闹钟</button>'+
+    '<br><span style="color:#555">⬅️ 左滑可删除闹钟</span>'+
+  '</div>';
   document.getElementById('app').innerHTML=h;
   // Also request notification permission
   if('Notification' in window && Notification.permission==='default'){
@@ -370,6 +379,62 @@ function renderDays(days){
   for(var i=0;i<7;i++)h+='<span style="color:'+(days[i]?'#3b82f6':'#444')+';margin-right:4px;font-size:11px">'+labels[i]+'</span>';
   return h;
 }
+
+// 导出单个闹钟到系统日历
+function exportToCalendar(i){
+  var a=data.alarms[i];
+  var now=new Date();
+  var timeParts=a.time.split(':');
+  var start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(timeParts[0]),parseInt(timeParts[1]));
+  var end=new Date(start.getTime()+30*60000);
+  var rrule='';
+  var dayMap=['SU','MO','TU','WE','TH','FR','SA'];
+  var activeDays=[];
+  for(var d=0;d<7;d++){if(a.days[d])activeDays.push(dayMap[d]);}
+  if(activeDays.length===7)rrule='RRULE:FREQ=WEEKLY';
+  else if(activeDays.length>0)rrule='RRULE:FREQ=WEEKLY;BYDAY='+activeDays.join(',');
+  else rrule=''; // 单次
+
+  var ics='BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//自律助手//CN\nBEGIN:VEVENT\n'+
+    'DTSTART:'+fmtICS(start)+'\nDTEND:'+fmtICS(end)+'\n'+
+    'SUMMARY:⏰ '+a.label+'\nDESCRIPTION:自律助手提醒 - '+a.label+'\n'+
+    (rrule?rrule+'\n':'')+
+    'BEGIN:VALARM\nTRIGGER:-PT5M\nACTION:DISPLAY\nDESCRIPTION:该去'+a.label+'了💪\nEND:VALARM\n'+
+    'END:VEVENT\nEND:VCALENDAR';
+
+  var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var link=document.createElement('a');
+  link.href=url;link.download=a.label+'.ics';document.body.appendChild(link);
+  link.click();document.body.removeChild(link);URL.revokeObjectURL(url);
+  toast('✅ 已下载，点击文件导入日历即可');
+}
+function fmtICS(d){return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'T'+('0'+d.getHours()).slice(-2)+('0'+d.getMinutes()).slice(-2)+'00';}
+window.exportToCalendar=exportToCalendar;
+
+// 导出全部闹钟
+function exportAllAlarms(){
+  var ics='BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//自律助手//CN\n';
+  var now=new Date();
+  for(var i=0;i<data.alarms.length;i++){
+    var a=data.alarms[i];
+    if(!a.on)continue;
+    var tp=a.time.split(':');
+    var start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(tp[0]),parseInt(tp[1]));
+    var end=new Date(start.getTime()+30*60000);
+    var dayMap=['SU','MO','TU','WE','TH','FR','SA'];
+    var ad=[];for(var d=0;d<7;d++){if(a.days[d])ad.push(dayMap[d]);}
+    var rrule=ad.length===7?'RRULE:FREQ=WEEKLY':(ad.length>0?'RRULE:FREQ=WEEKLY;BYDAY='+ad.join(','):'');
+    ics+='BEGIN:VEVENT\nDTSTART:'+fmtICS(start)+'\nDTEND:'+fmtICS(end)+'\nSUMMARY:⏰ '+a.label+'\n'+(rrule?rrule+'\n':'')+'BEGIN:VALARM\nTRIGGER:-PT5M\nACTION:DISPLAY\nDESCRIPTION:该去'+a.label+'了💪\nEND:VALARM\nEND:VEVENT\n';
+  }
+  ics+='END:VCALENDAR';
+  var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var link=document.createElement('a');link.href=url;link.download='自律提醒.ics';document.body.appendChild(link);
+  link.click();document.body.removeChild(link);URL.revokeObjectURL(url);
+  toast('✅ 全部闹钟已导出，导入日历即可');
+}
+window.exportAllAlarms=exportAllAlarms;
 
 function deleteAlarm(i){
   if(confirm('确定删除闹钟「'+data.alarms[i].label+'」？')){
