@@ -233,10 +233,21 @@ function getTodayGoal(type){return data.goals[type]||60;}
 // 计划页面（每日训练+学习合并日志）
 function renderTrain(){
   var h='<div class="header"><h1>📋 计划</h1></div>';
-  h+='<div style="display:flex;gap:8px;margin-bottom:14px">'+
-    '<button class="btn btn-purple" style="flex:1;padding:10px" onclick="openModal(\'fitness\')">+ 健身</button>'+
-    '<button class="btn btn-purple" style="flex:1;padding:10px;background:#ffb020" onclick="openModal(\'study\')">+ 学习</button>'+
-  '</div>';
+  // 今日摘要卡片
+  var todayFit=getTodayMinutes('fitness'),todayStudy=getTodayMinutes('study');
+  var fitGoal=getTodayGoal('fitness'),studyGoal=getTodayGoal('study');
+  var fitPct=Math.min(100,Math.round(todayFit/fitGoal*100));
+  var studyPct=Math.min(100,Math.round(todayStudy/getTodayGoal('study')*100));
+  h+='<div class="prog-card" style="margin-bottom:10px;border-color:rgba(59,130,246,.3)">'+
+    '<div style="font-size:12px;color:#aaa;margin-bottom:10px">📅 今日进度</div>'+
+    '<div style="display:flex;gap:12px">'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>💪 健身</span><span style="color:#3b82f6">'+todayFit+'/'+fitGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div></div>'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>📚 学习</span><span style="color:#ffb020">'+todayStudy+'/'+studyGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;margin-top:10px">'+
+      '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px" onclick="openModal(\'fitness\')">+ 健身</button>'+
+      '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px;background:#ffb020" onclick="openModal(\'study\')">+ 学习</button>'+
+    '</div></div>';
   var allDates={};data.fitness.forEach(function(e){allDates[e.date]=1;});data.study.forEach(function(e){allDates[e.date]=1;});
   var dates=Object.keys(allDates).sort().reverse();
   if(dates.length===0){h+='<div class="empty" style="padding:40px">还没有任何记录 ✨</div>';}
