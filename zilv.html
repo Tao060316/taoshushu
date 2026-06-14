@@ -199,11 +199,10 @@ var currentPage='today';
 function renderNav(){
   var pages=[
     {id:'today',label:'今日',icon:'📅'},
-    {id:'calendar',label:'日历',icon:'🗓️'},
     {id:'fitness',label:'健身',icon:'💪'},
     {id:'study',label:'学习',icon:'📚'},
-    {id:'alarms',label:'闹钟',icon:'⏰'},
-    {id:'stats',label:'统计',icon:'📊'}
+    {id:'records',label:'记录',icon:'🗂️'},
+    {id:'alarms',label:'闹钟',icon:'⏰'}
   ];
   var h='';
   for(var i=0;i<pages.length;i++){
@@ -678,6 +677,84 @@ function spawnConfetti(){
 }
 
 // ROUTING
+// 记录页面（日历+统计合并）
+function renderRecords(){
+  var h='<div class="header"><h1>🗂️ 记录</h1></div>';
+  h+='<div class="prog-card" style="padding:0;overflow:hidden;margin-bottom:14px">'+
+    '<div style="display:flex;background:#0f0f1a">'+
+      '<div class="ztab2 active" data-zt2="calendar" onclick="switchRtab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#3b82f6;border-bottom:2px solid #3b82f6;cursor:pointer;transition:all .2s">🗓️ 日历</div>'+
+      '<div class="ztab2" data-zt2="stats" onclick="switchRtab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s">📊 统计</div>'+
+    '</div>'+
+    '<div class="rzcontent" id="rc-calendar" style="padding:14px">'+buildCalendarHTML()+'</div>'+
+    '<div class="rzcontent" id="rc-stats" style="padding:14px;display:none">'+buildStatsHTML()+'</div>'+
+  '</div>';
+  document.getElementById('app').innerHTML=h;
+}
+
+window.switchRtab=function(el){
+  var tabs=document.querySelectorAll('.ztab2');
+  for(var i=0;i<tabs.length;i++){tabs[i].style.color='#555';tabs[i].style.borderBottomColor='transparent';tabs[i].classList.remove('active');}
+  el.style.color='#3b82f6';el.style.borderBottomColor='#3b82f6';el.classList.add('active');
+  var zt=el.getAttribute('data-zt2');
+  document.getElementById('rc-calendar').style.display=zt==='calendar'?'block':'none';
+  document.getElementById('rc-stats').style.display=zt==='stats'?'block':'none';
+};
+
+function buildCalendarHTML(){
+  var now=new Date();var y=now.getFullYear(),m=now.getMonth();
+  var firstDay=new Date(y,m,1).getDay();
+  var daysInMonth=new Date(y,m+1,0).getDate();
+  var dows=['日','一','二','三','四','五','六'];
+  var months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var h='<div style="text-align:center;color:#fff;font-weight:600;margin-bottom:10px;font-size:15px">'+y+'年 '+months[m]+'</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;margin-bottom:4px">';
+  for(var i=0;i<7;i++)h+='<div style="font-size:10px;color:#888;padding:2px">'+dows[i]+'</div>';
+  h+='</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">';
+  for(var i=0;i<firstDay;i++)h+='<div style="aspect-ratio:1"></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var ds=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    var fMin=getFitnessMin(ds),sMin=getStudyMin(ds),total=fMin+sMin;
+    var inten=total===0?0:(total<30?1:(total<60?2:(total<120?3:4)));
+    var colors=['#1a1a2e','#1a2a2a','#2a4a2a','#4a6a2a','#3b82f6'];
+    var isT=ds===today,has=fMin>0||sMin>0;
+    h+='<div onclick="openDayDetail(\''+ds+'\')" style="aspect-ratio:1;background:'+colors[inten]+';border-radius:6px;'+(isT?'border:2px solid #ffb020;':'')+'cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:'+(inten>2?'#fff':'#888')+'"><span style="font-weight:'+(isT?'700':'400')+'">'+d+'</span>'+(has?'<div style="display:flex;gap:2px;margin-top:1px"><span style="width:4px;height:4px;border-radius:50%;background:#3b82f6"></span>'+(sMin>0?'<span style="width:4px;height:4px;border-radius:50%;background:#ffb020"></span>':'')+'</div>':'')+'</div>';
+  }
+  h+='</div><div style="display:flex;gap:10px;margin-top:8px;font-size:9px;color:#888;justify-content:center">⬜未打卡 🟩少量 🟪充足 💜健身 🟠学习</div>';
+  return h;
+}
+
+function buildStatsHTML(){
+  var streak=calcStreak();
+  var totalFit=data.fitness.reduce(function(s,e){return s+(e.duration||0);},0);
+  var totalStudy=data.study.reduce(function(s,e){return s+(e.duration||0);},0);
+  var allDates={};data.fitness.forEach(function(e){allDates[e.date]=1;});data.study.forEach(function(e){allDates[e.date]=1;});
+  var totalDays=Object.keys(allDates).length;
+  var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#ffb020">'+streak+'</div><div style="font-size:10px;color:#888">🔥 连续打卡</div></div>'+
+    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#3b82f6">'+totalDays+'</div><div style="font-size:10px;color:#888">📅 活跃天数</div></div>'+
+    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#60a5fa">'+(totalFit/60).toFixed(1)+'h</div><div style="font-size:10px;color:#888">💪 健身总时长</div></div>'+
+    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#ffd56b">'+(totalStudy/60).toFixed(1)+'h</div><div style="font-size:10px;color:#888">📚 学习总时长</div></div>'+
+  '</div>';
+  // 本月热力
+  var now=new Date(),y=now.getFullYear(),mo=now.getMonth();
+  var fd=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate();
+  h+='<div style="font-size:12px;color:#fff;font-weight:600;margin-bottom:6px">📅 '+y+'年'+(mo+1)+'月打卡</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">';
+  var dls=['日','一','二','三','四','五','六'];
+  for(var i=0;i<7;i++)h+='<div style="font-size:9px;color:#888">'+dls[i]+'</div>';
+  for(var i=0;i<fd;i++)h+='<div></div>';
+  for(var d=1;d<=dim;d++){
+    var ds=y+'-'+('0'+(mo+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    var min=getFitnessMin(ds)+getStudyMin(ds);
+    var inten=min===0?0:(min<30?1:(min<60?2:(min<120?3:4)));
+    var cs=['#1a1a2e','#1a2a1a','#2a4a2a','#4a6a2a','#3b82f6'];
+    var isT=ds===today;
+    h+='<div style="aspect-ratio:1;background:'+cs[inten]+';border-radius:4px;'+(isT?'border:2px solid #ffb020;':'')+'display:flex;align-items:center;justify-content:center;font-size:10px;color:'+(inten>2?'#fff':'#555')+'">'+d+'</div>';
+  }
+  h+='</div><div style="display:flex;gap:8px;margin-top:6px;font-size:9px;color:#888;justify-content:center">⬜ 未打卡 🟩 少量 🟪 充足</div>';
+  return h;
+}
+
 // CALENDAR PAGE
 function renderCalendar(){
   var now=new Date();var y=now.getFullYear(),m=now.getMonth();
@@ -744,11 +821,10 @@ window.openDayDetail=function(ds){
 
 function renderPage(){
   if(currentPage==='today')renderToday();
-  else if(currentPage==='calendar')renderCalendar();
   else if(currentPage==='fitness')renderFitness();
   else if(currentPage==='study')renderStudy();
+  else if(currentPage==='records')renderRecords();
   else if(currentPage==='alarms')renderAlarms();
-  else if(currentPage==='stats')renderStats();
   renderNav();
 }
 
