@@ -13,137 +13,146 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-  background:#0f0f1a;color:#e0e0e0;min-height:100vh;
+  background:#000;color:#f5f5f5;min-height:100vh;
   -webkit-tap-highlight-color:transparent;
 }
-.app{max-width:500px;margin:0 auto;padding:16px;padding-top:max(30px,env(safe-area-inset-top,20px));padding-bottom:100px}
+.app{max-width:500px;margin:0 auto;padding:20px;padding-top:max(36px,env(safe-area-inset-top,24px));padding-bottom:100px}
 
 /* header */
-.header{display:flex;justify-content:space-between;align-items:center;padding:20px 0 14px}
-.header h1{font-size:22px;color:#fff}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 0 20px}
+.header h1{font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px}
 .streak-badge{
-  display:flex;align-items:center;gap:4px;padding:6px 14px;
-  background:linear-gradient(135deg,#ff6b35,#ff3860);color:#fff;
-  border-radius:20px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:6px;padding:8px 16px;
+  background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+  color:#fff;border-radius:24px;font-size:13px;font-weight:700;
+  box-shadow:0 4px 15px rgba(220,39,67,.3);
 }
 
 /* date strip */
-.date-strip{display:flex;gap:6px;overflow-x:auto;padding:8px 0 16px;scrollbar-width:none}
+.date-strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 20px;scrollbar-width:none}
 .date-strip::-webkit-scrollbar{display:none}
 .day-chip{
-  min-width:44px;height:60px;border-radius:12px;display:flex;
+  min-width:50px;height:68px;border-radius:25px;display:flex;
   flex-direction:column;align-items:center;justify-content:center;
-  background:#1a1a2e;border:1px solid #252540;cursor:pointer;
-  font-size:10px;color:#888;transition:all .2s;flex-shrink:0;
+  background:#1c1c1e;cursor:pointer;font-size:11px;color:#999;
+  transition:all .3s cubic-bezier(.4,0,.2,1);flex-shrink:0;border:none;
 }
-.day-chip .dow{font-size:11px;margin-bottom:2px}
-.day-chip .dnum{font-size:16px;font-weight:700}
-.day-chip.today{background:#3b82f6;border-color:#3b82f6;color:#fff}
-.day-chip.done{background:#1a2a1a;border-color:#2a4a2a}
-.day-chip.done .dnum{color:#4caf50}
+.day-chip .dow{font-size:11px;margin-bottom:3px;font-weight:500}
+.day-chip .dnum{font-size:18px;font-weight:700}
+.day-chip.today{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743);color:#fff;box-shadow:0 4px 12px rgba(220,39,67,.25)}
+.day-chip.done{background:#1c1c1e;box-shadow:inset 0 0 0 1.5px #4caf50}
 
 /* section */
-.sec{margin-bottom:18px}
-.sec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.sec-title{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:6px}
+.sec{margin-bottom:20px}
+.sec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sec-title{font-size:16px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px}
 .sec-add{
-  width:28px;height:28px;border-radius:50%;background:#3b82f6;
-  color:#fff;font-size:18px;border:none;cursor:pointer;
+  width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743);
+  color:#fff;font-size:20px;border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
 }
 
 /* progress card */
 .prog-card{
-  background:#1a1a2e;border-radius:16px;padding:16px;border:1px solid #252540;
+  background:#1c1c1e;border-radius:20px;padding:18px;border:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
 }
 .prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.prog-label{font-size:13px;color:#aaa}
+.prog-label{font-size:13px;color:#aaa;font-weight:500}
 .prog-val{font-size:13px;font-weight:600}
-.prog-bar-wrap{height:8px;background:#252540;border-radius:4px;overflow:hidden;margin-bottom:12px}
-.prog-bar{height:100%;border-radius:4px;transition:width .5s}
-.prog-bar.fit{background:linear-gradient(90deg,#3b82f6,#60a5fa)}
-.prog-bar.study{background:linear-gradient(90deg,#ffb020,#ff6b35)}
+.prog-bar-wrap{height:6px;background:#2c2c2e;border-radius:3px;overflow:hidden;margin-bottom:12px}
+.prog-bar{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.prog-bar.fit{background:linear-gradient(90deg,#f09433,#e6683c,#dc2743)}
+.prog-bar.study{background:linear-gradient(90deg,#f09433,#ffb020,#ffd56b)}
 
 /* entry card */
 .entry-card{
-  background:#1a1a2e;border-radius:14px;padding:14px;margin-bottom:8px;
-  border:1px solid #252540;cursor:pointer;transition:all .15s;
+  background:#1c1c1e;border-radius:16px;padding:14px;margin-bottom:8px;
+  border:none;cursor:pointer;transition:all .2s;
 }
-.entry-card:hover{background:#1e1e35}
+.entry-card:active{transform:scale(.98);background:#252527}
 .entry-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .entry-name{font-size:14px;font-weight:600;color:#fff}
 .entry-time{font-size:11px;color:#888}
-.entry-detail{font-size:12px;color:#777;display:flex;gap:16px}
+.entry-detail{font-size:12px;color:#999;display:flex;gap:16px}
 .entry-tag{
-  display:inline-block;padding:3px 10px;border-radius:10px;
+  display:inline-block;padding:4px 12px;border-radius:12px;
   font-size:10px;font-weight:600;
 }
-.entry-tag.fitness{background:rgba(59,130,246,.2);color:#60a5fa}
-.entry-tag.study{background:rgba(255,176,32,.2);color:#ffd56b}
+.entry-tag.fitness{background:rgba(240,148,51,.15);color:#f09433}
+.entry-tag.study{background:rgba(255,176,32,.15);color:#ffb020}
 
 /* alarm card */
 .alarm-card{
-  background:#1a1a2e;border-radius:14px;padding:14px;margin-bottom:8px;
-  border:1px solid #252540;display:flex;align-items:center;gap:12px;
+  background:#1c1c1e;border-radius:20px;padding:16px;margin-bottom:8px;
+  border:none;display:flex;align-items:center;gap:14px;
 }
-.alarm-time{font-size:24px;font-weight:700;color:#ffb020;min-width:70px}
+.alarm-time{font-size:28px;font-weight:700;color:#f09433;min-width:72px;letter-spacing:-1px}
 .alarm-info{flex:1}
-.alarm-label{font-size:13px;color:#fff;font-weight:500}
-.alarm-sub{font-size:11px;color:#888;margin-top:2px}
+.alarm-label{font-size:14px;color:#fff;font-weight:600}
+.alarm-sub{font-size:11px;color:#999;margin-top:3px}
 .alarm-toggle{
-  width:48px;height:28px;border-radius:14px;background:#333;
+  width:52px;height:30px;border-radius:15px;background:#3a3a3c;
   cursor:pointer;position:relative;transition:background .3s;
 }
-.alarm-toggle.on{background:#3b82f6}
+.alarm-toggle.on{background:#34c759}
 .alarm-toggle::after{
   content:'';position:absolute;top:3px;left:3px;
-  width:22px;height:22px;border-radius:50%;background:#fff;
-  transition:transform .3s;
+  width:24px;height:24px;border-radius:50%;background:#fff;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 2px 4px rgba(0,0,0,.3);
 }
-.alarm-toggle.on::after{transform:translateX(20px)}
+.alarm-toggle.on::after{transform:translateX(22px)}
 
 /* modal */
 .modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+  position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;
   display:flex;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);
 }
 .modal{
-  background:#1a1a2e;border-radius:20px 20px 0 0;padding:24px;
-  width:100%;max-width:500px;max-height:80vh;overflow-y:auto;
+  background:#1c1c1e;border-radius:24px 24px 0 0;padding:28px 24px;
+  width:100%;max-width:500px;max-height:85vh;overflow-y:auto;
 }
-.modal h3{font-size:18px;color:#fff;margin-bottom:16px}
+.modal h3{font-size:20px;color:#fff;margin-bottom:20px;font-weight:700}
 .modal input,.modal select,.modal textarea{
-  width:100%;padding:12px 14px;border-radius:10px;border:1px solid #252540;
-  background:#111;color:#fff;font-size:14px;margin-bottom:10px;
+  width:100%;padding:14px 16px;border-radius:14px;border:none;
+  background:#2c2c2e;color:#fff;font-size:15px;margin-bottom:10px;
   font-family:inherit;outline:none;
 }
-.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:#3b82f6}
-.modal textarea{resize:none;height:70px}
+.modal input:focus,.modal select:focus,.modal textarea:focus{background:#3a3a3c}
+.modal textarea{resize:none;height:80px}
 .modal-row{display:flex;gap:10px}
 .modal-row>*{flex:1}
-.modal .btn-row{display:flex;gap:10px;margin-top:6px}
+.modal .btn-row{display:flex;gap:10px;margin-top:8px}
 .btn{
-  padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;
-  border:none;cursor:pointer;flex:1;font-family:inherit;
+  padding:14px 24px;border-radius:14px;font-size:15px;font-weight:600;
+  border:none;cursor:pointer;flex:1;font-family:inherit;transition:all .2s;
 }
-.btn-purple{background:#3b82f6;color:#fff}
-.btn-outline{background:transparent;color:#888;border:1px solid #333}
+.btn:active{transform:scale(.96)}
+.btn-purple{background:linear-gradient(135deg,#f09433,#dc2743);color:#fff}
+.btn-outline{background:#2c2c2e;color:#aaa;border:none}
 
 /* empty state */
-.empty{text-align:center;padding:30px;color:#555;font-size:13px}
+.empty{text-align:center;padding:40px 20px;color:#666;font-size:14px}
 
 /* nav */
 .nav{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  width:100%;max-width:500px;background:#1a1a2e;border-top:1px solid #252540;
-  display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:50;
+  width:100%;max-width:500px;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,255,255,.08);
+  display:flex;padding:6px 0 max(6px,env(safe-area-inset-bottom,6px));z-index:50;
 }
 .nav-item{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:6px 0;cursor:pointer;color:#888;font-size:10px;transition:color .2s;
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 0;cursor:pointer;color:#888;font-size:10px;transition:color .2s;
 }
-.nav-item .ni{font-size:20px}
-.nav-item.on{color:#3b82f6}
+.nav-item .ni{font-size:22px;transition:transform .2s}
+.nav-item.on{color:#f09433}
+.nav-item.on .ni{transform:scale(1.1)}
+.nav-center .ni{transform:translateY(-14px)}
 
 /* chart */
 .chart-wrap{display:flex;align-items:flex-end;gap:4px;height:100px;padding:4px 0}
@@ -157,9 +166,10 @@ body{
 
 /* toast */
 .toast{
-  position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:200;
-  background:#333;color:#fff;padding:10px 24px;border-radius:20px;
-  font-size:13px;opacity:0;transition:opacity .3s;
+  position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:200;
+  background:rgba(44,44,46,.95);color:#fff;padding:12px 24px;border-radius:24px;
+  font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;
+  backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(0,0,0,.4);
 }
 .toast.show{opacity:1}
 </style>
@@ -209,7 +219,7 @@ function renderNav(){
     var p=pages[i];
     if(p.center){
       h+='<div class="nav-item nav-center'+(p.id===currentPage?' on':'')+'" data-page="'+p.id+'">'+
-        '<div class="ni" id="navPhoto" style="width:44px;height:44px;border-radius:50%;background:#1a1a2e;border:2px solid #3b82f6;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:-18px">'+
+        '<div class="ni" id="navPhoto" style="width:44px;height:44px;border-radius:50%;background:#1c1c1e;border:2px solid #3b82f6;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:-18px">'+
         (localStorage.getItem('motive_photo')?'<img src="'+localStorage.getItem('motive_photo')+'" style="width:100%;height:100%;object-fit:cover">':'⭐')+
         '</div><div>'+p.label+'</div></div>';
     }else{
@@ -243,11 +253,11 @@ function renderTrain(){
       '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>📚 学习</span><span style="color:#ffb020;cursor:pointer" onclick="event.stopPropagation();setGoal(\'study\')">'+ts+'/'+sg+'分 ✎</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+sp+'%"></div></div></div>'+
     '</div><div style="display:flex;gap:8px;margin-top:10px">'+
       '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px" onclick="openModal(\'fitness\')">+ 健身</button>'+
-      '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px;background:#ffb020" onclick="openModal(\'study\')">+ 学习</button>'+
+      '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px;background:linear-gradient(135deg,#f09433,#dc2743)" onclick="openModal(\'study\')">+ 学习</button>'+
     '</div></div>';
   // 三选项卡
   h+='<div class="prog-card" style="padding:0;overflow:hidden">'+
-    '<div style="display:flex;background:#0f0f1a">'+
+    '<div style="display:flex;background:#000">'+
       '<div class="ptab active" data-pt="daily" onclick="switchPTab(this)" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#3b82f6;border-bottom:2px solid #3b82f6;cursor:pointer">📅 每日</div>'+
       '<div class="ptab" data-pt="week" onclick="switchPTab(this)" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer">📆 每周</div>'+
       '<div class="ptab" data-pt="goal" onclick="switchPTab(this)" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer">🎯 目标</div>'+
@@ -338,7 +348,7 @@ function buildGoalTracker(){
   for(var i=0;i<goals.length;i++){
     var g=goals[i],p=progData[g.title]||{current:0,target:g.target||10};
     var pct=Math.min(100,Math.round(p.current/p.target*100));
-    h+='<div style="background:#0f0f1a;border-radius:10px;padding:12px;margin-bottom:8px">'+
+    h+='<div style="background:#000;border-radius:10px;padding:12px;margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
         '<span style="color:#fff;font-weight:600;font-size:14px">'+esc(g.title)+'</span>'+
         '<span style="color:#ff3860;cursor:pointer;font-size:14px" onclick="delG('+i+')">✕</span></div>'+
@@ -363,7 +373,7 @@ function renderMotive(){
   var h='<div class="header"><h1>⭐ 你的动力</h1></div>';
   h+='<div style="text-align:center">';
   // 照片区
-  h+='<div style="width:160px;height:160px;border-radius:50%;margin:0 auto 16px;background:#1a1a2e;border:3px solid #3b82f6;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(59,130,246,.3)" id="motivePhoto">';
+  h+='<div style="width:160px;height:160px;border-radius:50%;margin:0 auto 16px;background:#1c1c1e;border:3px solid #3b82f6;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(59,130,246,.3)" id="motivePhoto">';
   if(savedPhoto)h+='<img src="'+savedPhoto+'" style="width:100%;height:100%;object-fit:cover">';
   else h+='<div style="font-size:50px">⭐</div>';
   h+='</div>';
@@ -375,7 +385,7 @@ function renderMotive(){
   h+='<div style="font-size:12px;color:#888;margin-bottom:16px">每次看它一眼，再出发</div>';
   // 名言
   var qs=['Stay hungry, stay foolish.','The best time to plant a tree was 20 years ago. The second best time is now.','Dream big. Work hard. Stay focused.','Your only limit is you.','Wake up. Show up. Never give up.'];
-  h+='<div style="padding:14px;background:#1a1a2e;border-radius:12px;margin-top:10px;font-size:13px;color:#aaa;line-height:1.8;font-style:italic">"'+qs[Math.floor(Math.random()*qs.length)]+'"</div></div>';
+  h+='<div style="padding:14px;background:#1c1c1e;border-radius:12px;margin-top:10px;font-size:13px;color:#aaa;line-height:1.8;font-style:italic">"'+qs[Math.floor(Math.random()*qs.length)]+'"</div></div>';
   document.getElementById('app').innerHTML=h;
 }
 window.uploadPhoto=function(e){
@@ -436,7 +446,7 @@ function renderToday(){
     '</div>'+
     '<div style="display:flex;gap:8px;margin-top:12px">'+
       '<button class="btn btn-purple" style="flex:1;padding:10px" onclick="openModal(\'fitness\')">+ 健身</button>'+
-      '<button class="btn btn-purple" style="flex:1;padding:10px;background:#ffb020" onclick="openModal(\'study\')">+ 学习</button>'+
+      '<button class="btn btn-purple" style="flex:1;padding:10px;background:linear-gradient(135deg,#f09433,#dc2743)" onclick="openModal(\'study\')">+ 学习</button>'+
     '</div>';
 
   // 今日已记录
@@ -872,7 +882,7 @@ function spawnConfetti(){
 function renderRecords(){
   var h='<div class="header"><h1>🗂️ 记录</h1></div>';
   h+='<div class="prog-card" style="padding:0;overflow:hidden;margin-bottom:14px">'+
-    '<div style="display:flex;background:#0f0f1a">'+
+    '<div style="display:flex;background:#000">'+
       '<div class="ztab2 active" data-zt2="calendar" onclick="switchRtab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#3b82f6;border-bottom:2px solid #3b82f6;cursor:pointer;transition:all .2s">🗓️ 日历</div>'+
       '<div class="ztab2" data-zt2="stats" onclick="switchRtab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s">📊 统计</div>'+
     '</div>'+
@@ -908,7 +918,7 @@ function buildCalendarHTML(){
     var inten=total===0?0:(total<30?1:(total<60?2:(total<120?3:4)));
     var colors=['#1a1a2e','#1a2a2a','#2a4a2a','#4a6a2a','#3b82f6'];
     var isT=ds===today,has=fMin>0||sMin>0;
-    h+='<div onclick="openDayDetail(\''+ds+'\')" style="aspect-ratio:1;background:'+colors[inten]+';border-radius:6px;'+(isT?'border:2px solid #ffb020;':'')+'cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:'+(inten>2?'#fff':'#888')+'"><span style="font-weight:'+(isT?'700':'400')+'">'+d+'</span>'+(has?'<div style="display:flex;gap:2px;margin-top:1px"><span style="width:4px;height:4px;border-radius:50%;background:#3b82f6"></span>'+(sMin>0?'<span style="width:4px;height:4px;border-radius:50%;background:#ffb020"></span>':'')+'</div>':'')+'</div>';
+    h+='<div onclick="openDayDetail(\''+ds+'\')" style="aspect-ratio:1;background:'+colors[inten]+';border-radius:6px;'+(isT?'border:2px solid #ffb020;':'')+'cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:'+(inten>2?'#fff':'#888')+'"><span style="font-weight:'+(isT?'700':'400')+'">'+d+'</span>'+(has?'<div style="display:flex;gap:2px;margin-top:1px"><span style="width:4px;height:4px;border-radius:50%;background:#3b82f6"></span>'+(sMin>0?'<span style="width:4px;height:4px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743)"></span>':'')+'</div>':'')+'</div>';
   }
   h+='</div><div style="display:flex;gap:10px;margin-top:8px;font-size:9px;color:#888;justify-content:center">⬜未打卡 🟩少量 🟪充足 💜健身 🟠学习</div>';
   return h;
@@ -921,10 +931,10 @@ function buildStatsHTML(){
   var allDates={};data.fitness.forEach(function(e){allDates[e.date]=1;});data.study.forEach(function(e){allDates[e.date]=1;});
   var totalDays=Object.keys(allDates).length;
   var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
-    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#ffb020">'+streak+'</div><div style="font-size:10px;color:#888">🔥 连续打卡</div></div>'+
-    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#3b82f6">'+totalDays+'</div><div style="font-size:10px;color:#888">📅 活跃天数</div></div>'+
-    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#60a5fa">'+(totalFit/60).toFixed(1)+'h</div><div style="font-size:10px;color:#888">💪 健身总时长</div></div>'+
-    '<div style="background:#0f0f1a;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#ffd56b">'+(totalStudy/60).toFixed(1)+'h</div><div style="font-size:10px;color:#888">📚 学习总时长</div></div>'+
+    '<div style="background:#000;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#ffb020">'+streak+'</div><div style="font-size:10px;color:#888">🔥 连续打卡</div></div>'+
+    '<div style="background:#000;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#3b82f6">'+totalDays+'</div><div style="font-size:10px;color:#888">📅 活跃天数</div></div>'+
+    '<div style="background:#000;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#60a5fa">'+(totalFit/60).toFixed(1)+'h</div><div style="font-size:10px;color:#888">💪 健身总时长</div></div>'+
+    '<div style="background:#000;border-radius:10px;padding:12px;text-align:center"><div style="font-size:30px;font-weight:900;color:#ffd56b">'+(totalStudy/60).toFixed(1)+'h</div><div style="font-size:10px;color:#888">📚 学习总时长</div></div>'+
   '</div>';
   // 本月热力
   var now=new Date(),y=now.getFullYear(),mo=now.getMonth();
@@ -974,7 +984,7 @@ function renderCalendar(){
     h+='<div onclick="openDayDetail(\''+ds+'\')" style="aspect-ratio:1;background:'+colors[intensity]+';border-radius:8px;'+
       (isToday?'border:2px solid #ffb020;':'')+'cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;font-size:12px;color:'+(intensity>2?'#fff':'#888')+';position:relative">'+
       '<span style="font-weight:'+(isToday?'700':'400')+'">'+d+'</span>'+
-      (hasFit?'<div style="display:flex;gap:2px;margin-top:2px"><span style="width:5px;height:5px;border-radius:50%;background:#3b82f6"></span>'+(hasStudy?'<span style="width:5px;height:5px;border-radius:50%;background:#ffb020"></span>':'')+'</div>':'')+
+      (hasFit?'<div style="display:flex;gap:2px;margin-top:2px"><span style="width:5px;height:5px;border-radius:50%;background:#3b82f6"></span>'+(hasStudy?'<span style="width:5px;height:5px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743)"></span>':'')+'</div>':'')+
     '</div>';
   }
   h+='</div>';
