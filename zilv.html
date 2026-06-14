@@ -1079,8 +1079,13 @@ if('serviceWorker' in navigator){
 }
 
 // INIT
-renderNav();
-renderPage();
+try{
+  renderNav();
+  renderPage();
+}catch(e){
+  document.getElementById('app').innerHTML='<div style="padding:20px;color:#ff3860"><b>加载错误</b><br>'+e.message+'<br><pre style="font-size:10px">'+e.stack+'</pre><br><button onclick="localStorage.clear();location.reload()" style="padding:10px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;margin-top:10px">清除数据并刷新</button></div>';
+  document.getElementById('nav').innerHTML='';
+}
 
 // Nav clicks
 document.getElementById('nav').addEventListener('click',function(e){
