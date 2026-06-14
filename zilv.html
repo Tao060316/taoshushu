@@ -370,22 +370,49 @@ window.delG=function(i){var t=data.longGoals[i].title;data.longGoals.splice(i,1)
 // 动力页面
 function renderMotive(){
   var savedPhoto=localStorage.getItem('motive_photo')||'';
-  var h='<div class="header"><h1>⭐ 你的动力</h1></div>';
-  h+='<div style="text-align:center">';
-  // 照片区
-  h+='<div style="width:160px;height:160px;border-radius:50%;margin:0 auto 16px;background:#1c1c1e;border:3px solid #3b82f6;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(59,130,246,.3)" id="motivePhoto">';
+  var streak=calcStreak();
+  var h='<div class="header"><h1>⭐ 动力</h1></div>';
+
+  // 照片区 - IG story 风格
+  h+='<div style="text-align:center;padding:20px 0">';
+  h+='<div style="position:relative;width:180px;height:180px;margin:0 auto 24px">';
+  // 渐变环
+  h+='<div style="position:absolute;inset:-4px;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);padding:3px">';
+  h+='<div style="width:100%;height:100%;border-radius:50%;background:#000;overflow:hidden" id="motivePhoto">';
   if(savedPhoto)h+='<img src="'+savedPhoto+'" style="width:100%;height:100%;object-fit:cover">';
-  else h+='<div style="font-size:50px">⭐</div>';
-  h+='</div>';
-  // 上传按钮
+  else h+='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:60px">⭐</div>';
+  h+='</div></div></div>';
+
+  // 上传
   h+='<input type="file" accept="image/*" id="photoInput" style="display:none" onchange="uploadPhoto(event)">';
-  h+='<button class="btn btn-outline" style="margin-bottom:12px;padding:8px 20px" onclick="document.getElementById(\'photoInput\').click()">📷 '+(savedPhoto?'换照片':'上传照片')+'</button>';
+  h+='<button class="btn btn-outline" style="padding:10px 28px;font-size:13px" onclick="document.getElementById(\'photoInput\').click()">'+(savedPhoto?'🔄 更换照片':'📷 上传照片')+'</button>';
+
   // 标语
-  h+='<div style="font-size:20px;font-style:italic;color:#fff;margin:12px 0;line-height:1.6;font-weight:600">Your<br>Motivation</div>';
-  h+='<div style="font-size:12px;color:#888;margin-bottom:16px">每次看它一眼，再出发</div>';
+  h+='<div style="margin-top:24px">';
+  h+='<div style="font-size:32px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1.2">Your</div>';
+  h+='<div style="font-size:32px;font-weight:800;background:linear-gradient(135deg,#f09433,#dc2743);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2">Motivation</div>';
+  h+='</div>';
+
+  // 连续打卡
+  h+='<div style="display:flex;justify-content:center;gap:16px;margin-top:20px">';
+  h+='<div style="text-align:center"><div style="font-size:36px;font-weight:800;color:#fff">'+streak+'</div><div style="font-size:11px;color:#888">🔥 连续天数</div></div>';
+  var totalDays=0;var ad={};data.fitness.forEach(function(e){ad[e.date]=1;});data.study.forEach(function(e){ad[e.date]=1;});totalDays=Object.keys(ad).length;
+  h+='<div style="text-align:center"><div style="font-size:36px;font-weight:800;color:#fff">'+totalDays+'</div><div style="font-size:11px;color:#888">📅 活跃天数</div></div>';
+  h+='</div>';
+
   // 名言
-  var qs=['Stay hungry, stay foolish.','The best time to plant a tree was 20 years ago. The second best time is now.','Dream big. Work hard. Stay focused.','Your only limit is you.','Wake up. Show up. Never give up.'];
-  h+='<div style="padding:14px;background:#1c1c1e;border-radius:12px;margin-top:10px;font-size:13px;color:#aaa;line-height:1.8;font-style:italic">"'+qs[Math.floor(Math.random()*qs.length)]+'"</div></div>';
+  var qs=[
+    {q:'Stay hungry, stay foolish.',a:'求知若饥，虚心若愚'},
+    {q:'The best time to plant a tree was 20 years ago. The second best time is now.',a:'种树最好的时间是二十年前，其次是现在'},
+    {q:'Dream big. Work hard. Stay focused.',a:'大胆梦想，努力付出，保持专注'},
+    {q:'Your only limit is you.',a:'你唯一的限制是你自己'},
+    {q:'Wake up. Show up. Never give up.',a:'醒来，出现，永不放弃'}
+  ];
+  var q=qs[Math.floor(Math.random()*qs.length)];
+  h+='<div style="margin-top:24px;padding:20px;background:#1c1c1e;border-radius:20px;text-align:center">'+
+    '<div style="font-size:15px;font-style:italic;color:#ddd;line-height:1.8">"'+q.q+'"</div>'+
+    '<div style="font-size:12px;color:#888;margin-top:8px">'+q.a+'</div>'+
+  '</div></div>';
   document.getElementById('app').innerHTML=h;
 }
 window.uploadPhoto=function(e){
@@ -395,7 +422,7 @@ window.uploadPhoto=function(e){
     var dataUrl=ev.target.result;
     localStorage.setItem('motive_photo',dataUrl);
     document.getElementById('motivePhoto').innerHTML='<img src="'+dataUrl+'" style="width:100%;height:100%;object-fit:cover">';
-    renderNav(); // 更新导航头像
+    renderNav();
     toast('✅ 照片已保存');
   };
   reader.readAsDataURL(file);
