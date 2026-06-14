@@ -345,10 +345,16 @@ function renderAlarms(){
   h+='<div style="margin-bottom:14px"><button class="btn btn-purple" onclick="openAlarmModal()">+ 添加闹钟</button></div>';
   for(var i=0;i<data.alarms.length;i++){
     var a=data.alarms[i];
-    h+='<div class="alarm-card"><div class="alarm-time">'+a.time+'</div><div class="alarm-info"><div class="alarm-label">'+esc(a.label)+'</div><div class="alarm-sub">'+renderDays(a.days)+'</div></div><div class="alarm-toggle'+(a.on?' on':'')+'" data-ai="'+i+'" onclick="toggleAlarm('+i+')"></div></div>';
+    h+='<div class="swipe-wrap" style="position:relative;overflow:hidden;border-radius:14px;margin-bottom:8px">'+
+      '<div class="swipe-del" style="position:absolute;right:0;top:0;bottom:0;width:80px;background:#ff3860;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:600;cursor:pointer;border-radius:0 14px 14px 0;z-index:0" onclick="deleteAlarm('+i+')">删除</div>'+
+      '<div class="alarm-card swipe-item" style="margin-bottom:0;position:relative;z-index:1;transition:transform .25s;touch-action:pan-y" data-si="'+i+'">'+
+        '<div class="alarm-time">'+a.time+'</div>'+
+        '<div class="alarm-info"><div class="alarm-label">'+esc(a.label)+'</div><div class="alarm-sub">'+renderDays(a.days)+'</div></div>'+
+        '<div class="alarm-toggle'+(a.on?' on':'')+'" onclick="toggleAlarm('+i+')"></div>'+
+      '</div></div>';
   }
-  // 权限提示
-  h+='<div class="prog-card" style="margin-top:12px;font-size:11px;color:#888;line-height:1.6"><b>💡 提示：</b>浏览器闹钟需要允许通知权限。打开本页面时，浏览器会询问是否允许通知，请点击「允许」。如果之前拒绝了，可以在浏览器设置中重新开启。</div>';
+  // 提示
+  h+='<div class="prog-card" style="margin-top:12px;font-size:11px;color:#888;line-height:1.6"><b>💡 提示：</b>闹钟响起需要页面保持打开 + 允许通知权限。⬅️ <b>左滑可删除</b>闹钟。</div>';
   document.getElementById('app').innerHTML=h;
   // Also request notification permission
   if('Notification' in window && Notification.permission==='default'){
@@ -365,11 +371,38 @@ function renderDays(days){
   return h;
 }
 
+function deleteAlarm(i){
+  if(confirm('确定删除闹钟「'+data.alarms[i].label+'」？')){
+    data.alarms.splice(i,1);persist();renderAlarms();toast('已删除');
+  }
+}
+window.deleteAlarm=deleteAlarm;
+
 function toggleAlarm(i){
   data.alarms[i].on=!data.alarms[i].on;
   persist();
   renderAlarms();
 }
+
+// 左滑删除
+var swipeStartX=0,swipeEl=null;
+document.addEventListener('touchstart',function(e){
+  var item=e.target.closest('.swipe-item');
+  if(item){swipeEl=item;swipeStartX=e.touches[0].clientX;}
+},true);
+document.addEventListener('touchmove',function(e){
+  if(!swipeEl)return;
+  var dx=e.touches[0].clientX-swipeStartX;
+  if(dx<-30){swipeEl.style.transform='translateX(-80px)';}
+  else{swipeEl.style.transform='translateX(0)';}
+},true);
+document.addEventListener('touchend',function(){
+  if(!swipeEl)return;
+  setTimeout(function(){
+    if(swipeEl)swipeEl.style.transform='translateX(0)';
+    swipeEl=null;
+  },200);
+},true);
 
 // RENDER STATS PAGE
 function renderStats(){
@@ -531,14 +564,35 @@ function checkAlarms(){
     if(!a.on||!a.days[dow])continue;
     if(a.time===ct&&!lastAlarmCheck[i+'_'+ct]){
       lastAlarmCheck[i+'_'+ct]=true;
-      if('Notification' in window && Notification.permission==='granted'){
-        new Notification('⏰ '+a.label,{body:'时间到了！该去'+a.label+'了 💪',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">⏰</text></svg>'});
-      }
-      toast('⏰ '+a.label+' — 时间到了！');
+      triggerAlarm(a);
     }
   }
-  setTimeout(checkAlarms,30000);
+  setTimeout(checkAlarms,15000); // 15秒检查一次
 }
+
+function triggerAlarm(a){
+  // 系统通知
+  if('Notification' in window && Notification.permission==='granted'){
+    try{new Notification('⏰ '+a.label,{body:'时间到了！该去'+a.label+'了 💪',tag:'alarm'});}catch(e){}
+  }
+  // 页面内弹窗
+  toast('⏰ '+a.label+' — 时间到了！');
+  // 震动
+  if(navigator.vibrate)try{navigator.vibrate([200,100,200,100,500]);}catch(e){}
+  // 播放提示音
+  try{
+    var ac=new AudioContext();
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.frequency.value=880;g.gain.value=0.3;
+    o.start();setTimeout(function(){o.stop();ac.close();},300);
+  }catch(e){}
+}
+
+window.testAlarm=function(){
+  var a={label:'测试闹钟',time:('0'+new Date().getHours()).slice(-2)+':'+('0'+new Date().getMinutes()).slice(-2)};
+  triggerAlarm(a);
+};
 
 // HELPERS
 function persist(){save('discipline_data',data);}
