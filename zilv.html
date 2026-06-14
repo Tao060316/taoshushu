@@ -239,8 +239,8 @@ function renderTrain(){
   var fp=Math.min(100,Math.round(tf/fg*100)),sp=Math.min(100,Math.round(ts/sg*100));
   h+='<div class="prog-card" style="margin-bottom:10px;border-color:rgba(59,130,246,.3)">'+
     '<div style="display:flex;gap:12px">'+
-      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>💪 健身</span><span style="color:#3b82f6">'+tf+'/'+fg+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fp+'%"></div></div></div>'+
-      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>📚 学习</span><span style="color:#ffb020">'+ts+'/'+sg+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+sp+'%"></div></div></div>'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>💪 健身</span><span style="color:#3b82f6;cursor:pointer" onclick="event.stopPropagation();setGoal(\'fitness\')">'+tf+'/'+fg+'分 ✎</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fp+'%"></div></div></div>'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>📚 学习</span><span style="color:#ffb020;cursor:pointer" onclick="event.stopPropagation();setGoal(\'study\')">'+ts+'/'+sg+'分 ✎</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+sp+'%"></div></div></div>'+
     '</div><div style="display:flex;gap:8px;margin-top:10px">'+
       '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px" onclick="openModal(\'fitness\')">+ 健身</button>'+
       '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px;background:#ffb020" onclick="openModal(\'study\')">+ 学习</button>'+
@@ -390,8 +390,8 @@ function renderToday(){
   // 今日进度条
   h+='<div class="prog-card" style="margin-bottom:14px">'+
     '<div style="display:flex;gap:12px">'+
-      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>💪 健身</span><span style="color:#3b82f6">'+fitMin+'/'+fitGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div></div>'+
-      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>📚 学习</span><span style="color:#ffb020">'+studyMin+'/'+studyGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div></div>'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>💪 健身</span><span style="color:#3b82f6;cursor:pointer" onclick="event.stopPropagation();setGoal(\'fitness\')">'+fitMin+'/'+fitGoal+'分 ✎</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div></div>'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>📚 学习</span><span style="color:#ffb020;cursor:pointer" onclick="event.stopPropagation();setGoal(\'study\')">'+studyMin+'/'+studyGoal+'分 ✎</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div></div>'+
     '</div>'+
     '<div style="display:flex;gap:8px;margin-top:12px">'+
       '<button class="btn btn-purple" style="flex:1;padding:10px" onclick="openModal(\'fitness\')">+ 健身</button>'+
