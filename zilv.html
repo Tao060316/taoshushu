@@ -199,16 +199,23 @@ var currentPage='today';
 function renderNav(){
   var pages=[
     {id:'today',label:'今日',icon:'📅'},
-    {id:'fitness',label:'健身',icon:'💪'},
-    {id:'study',label:'学习',icon:'📚'},
+    {id:'train',label:'自律',icon:'🎯'},
+    {id:'motive',label:'动力',icon:'⭐',center:true},
     {id:'records',label:'记录',icon:'🗂️'},
     {id:'alarms',label:'闹钟',icon:'⏰'}
   ];
   var h='';
   for(var i=0;i<pages.length;i++){
     var p=pages[i];
-    h+='<div class="nav-item'+(p.id===currentPage?' on':'')+'" data-page="'+p.id+'">'+
-      '<div class="ni">'+p.icon+'</div><div>'+p.label+'</div></div>';
+    if(p.center){
+      h+='<div class="nav-item nav-center'+(p.id===currentPage?' on':'')+'" data-page="'+p.id+'">'+
+        '<div class="ni" id="navPhoto" style="width:44px;height:44px;border-radius:50%;background:#1a1a2e;border:2px solid #3b82f6;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:-18px">'+
+        (localStorage.getItem('motive_photo')?'<img src="'+localStorage.getItem('motive_photo')+'" style="width:100%;height:100%;object-fit:cover">':'⭐')+
+        '</div><div>'+p.label+'</div></div>';
+    }else{
+      h+='<div class="nav-item'+(p.id===currentPage?' on':'')+'" data-page="'+p.id+'">'+
+        '<div class="ni">'+p.icon+'</div><div>'+p.label+'</div></div>';
+    }
   }
   document.getElementById('nav').innerHTML=h;
 }
@@ -221,6 +228,85 @@ function getTodayMinutes(type){
   return getTodayEntries(type).reduce(function(s,e){return s+(e.duration||0);},0);
 }
 function getTodayGoal(type){return data.goals[type]||60;}
+
+// 训练页面（健身+学习合并）
+function renderTrain(){
+  var h='<div class="header"><h1>🎯 训练</h1></div>';
+  h+='<div class="prog-card" style="padding:0;overflow:hidden;margin-bottom:14px">'+
+    '<div style="display:flex;background:#0f0f1a">'+
+      '<div class="ttab active" data-tt="fitness" onclick="switchTTab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#3b82f6;border-bottom:2px solid #3b82f6;cursor:pointer">💪 健身</div>'+
+      '<div class="ttab" data-tt="study" onclick="switchTTab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer">📚 学习</div>'+
+    '</div>'+
+    '<div class="tcontent" id="tc-fitness" style="padding:14px">'+buildFitnessList()+'</div>'+
+    '<div class="tcontent" id="tc-study" style="padding:14px;display:none">'+buildStudyList()+'</div>'+
+  '</div>';
+  document.getElementById('app').innerHTML=h;
+}
+window.switchTTab=function(el){
+  var ts=document.querySelectorAll('.ttab');for(var i=0;i<ts.length;i++){ts[i].style.color='#555';ts[i].style.borderBottomColor='transparent';ts[i].classList.remove('active');}
+  el.style.color='#3b82f6';el.style.borderBottomColor='#3b82f6';el.classList.add('active');
+  var tt=el.getAttribute('data-tt');
+  document.getElementById('tc-fitness').style.display=tt==='fitness'?'block':'none';
+  document.getElementById('tc-study').style.display=tt==='study'?'block':'none';
+};
+
+function buildFitnessList(){
+  var all=data.fitness.slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.time.localeCompare(a.time);});
+  var h='<button class="btn btn-purple" style="width:100%;margin-bottom:10px;padding:10px" onclick="openModal(\'fitness\')">+ 记录健身</button>';
+  var maxF=0;for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var m=getFitnessMin(d.toISOString().slice(0,10));if(m>maxF)maxF=m;}
+  h+='<div style="margin-bottom:8px"><div style="font-size:11px;color:#888;margin-bottom:4px">📊 近7天(分钟)</div><div class="chart-wrap" style="height:60px">';
+  for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);var m=getFitnessMin(ds);var hh=maxF>0?Math.max(3,m/maxF*60):3;var isT=ds===today;h+='<div style="flex:1;text-align:center"><div class="chart-bar" style="height:'+hh+'px;background:'+(isT?'#3b82f6':'#252540')+'"></div><div style="font-size:8px;color:#888;margin-top:2px">'+(d.getMonth()+1)+'/'+d.getDate()+'</div></div>';}
+  h+='</div></div>';
+  if(all.length===0)h+='<div class="empty">还没有健身记录</div>';
+  else for(var i=0;i<all.length;i++){var e=all[i];h+='<div class="entry-card" onclick="editEntry(\'fitness\','+data.fitness.indexOf(e)+')"><div class="entry-top"><span class="entry-name">'+esc(e.name)+'</span><span class="entry-time">'+e.date+' '+e.time+'</span></div><div class="entry-detail">'+(e.bodyPart?'<span>'+e.bodyPart+'</span>':'')+(e.sets?'<span>'+e.sets+'组 × '+(e.reps||0)+'次</span>':'')+(e.duration?'<span>'+e.duration+'分钟</span>':'')+'<span class="entry-tag fitness">健身</span></div></div>';}
+  return h;
+}
+
+function buildStudyList(){
+  var all=data.study.slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.time.localeCompare(a.time);});
+  var h='<button class="btn btn-purple" style="width:100%;margin-bottom:10px;padding:10px;background:#ffb020" onclick="openModal(\'study\')">+ 记录学习</button>';
+  var maxS=0;for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var m=getStudyMin(d.toISOString().slice(0,10));if(m>maxS)maxS=m;}
+  h+='<div style="margin-bottom:8px"><div style="font-size:11px;color:#888;margin-bottom:4px">📊 近7天(分钟)</div><div class="chart-wrap" style="height:60px">';
+  for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);var m=getStudyMin(ds);var hh=maxS>0?Math.max(3,m/maxS*60):3;var isT=ds===today;h+='<div style="flex:1;text-align:center"><div class="chart-bar" style="height:'+hh+'px;background:'+(isT?'#ffb020':'#252540')+'"></div><div style="font-size:8px;color:#888;margin-top:2px">'+(d.getMonth()+1)+'/'+d.getDate()+'</div></div>';}
+  h+='</div></div>';
+  if(all.length===0)h+='<div class="empty">还没有学习记录</div>';
+  else for(var i=0;i<all.length;i++){var e=all[i];h+='<div class="entry-card" onclick="editEntry(\'study\','+data.study.indexOf(e)+')"><div class="entry-top"><span class="entry-name">'+esc(e.subject)+'</span><span class="entry-time">'+e.date+' '+e.time+'</span></div><div class="entry-detail">'+(e.book?'<span>📖 '+esc(e.book.slice(0,20))+'</span>':'')+(e.duration?'<span>'+e.duration+'分钟</span>':'')+(e.note?'<span>'+esc(e.note.slice(0,20))+'</span>':'')+'<span class="entry-tag study">学习</span></div></div>';}
+  return h;
+}
+
+// 动力页面
+function renderMotive(){
+  var savedPhoto=localStorage.getItem('motive_photo')||'';
+  var h='<div class="header"><h1>⭐ 你的动力</h1></div>';
+  h+='<div style="text-align:center">';
+  // 照片区
+  h+='<div style="width:160px;height:160px;border-radius:50%;margin:0 auto 16px;background:#1a1a2e;border:3px solid #3b82f6;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(59,130,246,.3)" id="motivePhoto">';
+  if(savedPhoto)h+='<img src="'+savedPhoto+'" style="width:100%;height:100%;object-fit:cover">';
+  else h+='<div style="font-size:50px">⭐</div>';
+  h+='</div>';
+  // 上传按钮
+  h+='<input type="file" accept="image/*" id="photoInput" style="display:none" onchange="uploadPhoto(event)">';
+  h+='<button class="btn btn-outline" style="margin-bottom:12px;padding:8px 20px" onclick="document.getElementById(\'photoInput\').click()">📷 '+(savedPhoto?'换照片':'上传照片')+'</button>';
+  // 标语
+  h+='<div style="font-size:20px;font-style:italic;color:#fff;margin:12px 0;line-height:1.6;font-weight:600">Your<br>Motivation</div>';
+  h+='<div style="font-size:12px;color:#888;margin-bottom:16px">每次看它一眼，再出发</div>';
+  // 名言
+  var qs=['Stay hungry, stay foolish.','The best time to plant a tree was 20 years ago. The second best time is now.','Dream big. Work hard. Stay focused.','Your only limit is you.','Wake up. Show up. Never give up.'];
+  h+='<div style="padding:14px;background:#1a1a2e;border-radius:12px;margin-top:10px;font-size:13px;color:#aaa;line-height:1.8;font-style:italic">"'+qs[Math.floor(Math.random()*qs.length)]+'"</div></div>';
+  document.getElementById('app').innerHTML=h;
+}
+window.uploadPhoto=function(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var dataUrl=ev.target.result;
+    localStorage.setItem('motive_photo',dataUrl);
+    document.getElementById('motivePhoto').innerHTML='<img src="'+dataUrl+'" style="width:100%;height:100%;object-fit:cover">';
+    renderNav(); // 更新导航头像
+    toast('✅ 照片已保存');
+  };
+  reader.readAsDataURL(file);
+};
 
 function renderToday(){
   var fitMin=getTodayMinutes('fitness'),studyMin=getTodayMinutes('study');
@@ -356,7 +442,8 @@ function renderAlarms(){
         '<div class="alarm-time">'+a.time+'</div>'+
         '<div class="alarm-info"><div class="alarm-label">'+esc(a.label)+'</div><div class="alarm-sub">'+renderDays(a.days)+'</div></div>'+
         '<div class="alarm-toggle'+(a.on?' on':'')+'" onclick="toggleAlarm('+i+')"></div>'+
-        '<div style="font-size:10px;color:#3b82f6;cursor:pointer;margin-left:4px" onclick="event.stopPropagation();exportToCalendar('+i+')">📤</div>'+
+        '<div style="font-size:10px;color:#3b82f6;cursor:pointer;margin-left:2px" onclick="event.stopPropagation();exportToCalendar('+i+')">📤</div>'+
+        '<div style="font-size:14px;color:#ff3860;cursor:pointer;margin-left:4px;padding:2px 8px" onclick="event.stopPropagation();deleteAlarm('+i+')">✕</div>'+
       '</div></div>';
   }
   // 提示 + 日历导出
@@ -647,10 +734,10 @@ function checkAlarms(){
 function triggerAlarm(a){
   // 系统通知
   if('Notification' in window && Notification.permission==='granted'){
-    try{new Notification('⏰ '+a.label,{body:'时间到了！该去'+a.label+'了 💪',tag:'alarm'});}catch(e){}
+    try{new Notification('⏰ Time for '+a.label+'!',{body:'Time for '+a.label+'! 💪 该行动了！',tag:'alarm'});}catch(e){}
   }
   // 页面内弹窗
-  toast('⏰ '+a.label+' — 时间到了！');
+  toast('⏰ Time for '+a.label+'!');
   // 震动
   if(navigator.vibrate)try{navigator.vibrate([200,100,200,100,500]);}catch(e){}
   // 播放提示音
@@ -824,8 +911,8 @@ window.openDayDetail=function(ds){
 
 function renderPage(){
   if(currentPage==='today')renderToday();
-  else if(currentPage==='fitness')renderFitness();
-  else if(currentPage==='study')renderStudy();
+  else if(currentPage==='train')renderTrain();
+  else if(currentPage==='motive')renderMotive();
   else if(currentPage==='records')renderRecords();
   else if(currentPage==='alarms')renderAlarms();
   renderNav();
