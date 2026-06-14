@@ -280,10 +280,10 @@ function buildDailyLog(){
         '<span style="font-weight:600;color:#fff;font-size:13px">'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+dws[d.getDay()]+'</span>'+
         (isT?'<span style="background:#3b82f6;color:#fff;padding:1px 7px;border-radius:10px;font-size:9px">今天</span>':'')+
         '<span style="font-size:10px;color:#888">'+(tm>0?tm+'分':'')+'</span></div>';
-    for(var fi=0;fi<fits.length;fi++){var e=fits[fi];
-      h+='<div style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px"><span style="background:rgba(59,130,246,.15);padding:1px 6px;border-radius:6px;color:#3b82f6;font-size:9px">💪</span><span style="color:#ddd;flex:1">'+esc(e.name)+(e.bodyPart?' · '+e.bodyPart:'')+'</span>'+(e.sets?'<span style="color:#888">'+e.sets+'组'+(e.reps?'×'+e.reps:'')+'</span>':'')+(e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
-    for(var si=0;si<studies.length;si++){var e=studies[si];
-      h+='<div style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px"><span style="background:rgba(255,176,32,.15);padding:1px 6px;border-radius:6px;color:#ffb020;font-size:9px">📚</span><span style="color:#ddd;flex:1">'+esc(e.subject)+(e.book?' · '+esc(e.book):'')+'</span>'+(e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
+    for(var fi=0;fi<fits.length;fi++){var e=fits[fi],fidx=data.fitness.indexOf(e);
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;cursor:pointer" onclick="editEntry(\'fitness\','+fidx+')"><span style="background:rgba(59,130,246,.15);padding:1px 6px;border-radius:6px;color:#3b82f6;font-size:9px">💪</span><span style="color:#ddd;flex:1">'+esc(e.name)+(e.bodyPart?' · '+e.bodyPart:'')+'</span>'+(e.sets?'<span style="color:#888">'+e.sets+'组'+(e.reps?'×'+e.reps:'')+'</span>':'')+(e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
+    for(var si=0;si<studies.length;si++){var e=studies[si],sidx=data.study.indexOf(e);
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;cursor:pointer" onclick="editEntry(\'study\','+sidx+')"><span style="background:rgba(255,176,32,.15);padding:1px 6px;border-radius:6px;color:#ffb020;font-size:9px">📚</span><span style="color:#ddd;flex:1">'+esc(e.subject)+(e.book?' · '+esc(e.book):'')+'</span>'+(e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
     h+='</div>';
   }
   return h;
@@ -396,7 +396,21 @@ function renderToday(){
     '<div style="display:flex;gap:8px;margin-top:12px">'+
       '<button class="btn btn-purple" style="flex:1;padding:10px" onclick="openModal(\'fitness\')">+ 健身</button>'+
       '<button class="btn btn-purple" style="flex:1;padding:10px;background:#ffb020" onclick="openModal(\'study\')">+ 学习</button>'+
-    '</div></div>';
+    '</div>';
+
+  // 今日已记录
+  var fits=getTodayEntries('fitness'),studies=getTodayEntries('study');
+  if(fits.length>0||studies.length>0){
+    h+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #1a1f40">';
+    for(var i=0;i<fits.length;i++){var e=fits[i];
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;cursor:pointer" onclick="editEntry(\'fitness\','+i+')">'+
+        '<span style="color:#3b82f6;font-size:10px">💪</span><span style="color:#ddd;flex:1">'+esc(e.name)+(e.bodyPart?' · '+e.bodyPart:'')+(e.duration?' · '+e.duration+'分':'')+'</span><span style="color:#888;font-size:10px">'+e.time+'</span></div>';}
+    for(var i=0;i<studies.length;i++){var e=studies[i];
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;cursor:pointer" onclick="editEntry(\'study\','+i+')">'+
+        '<span style="color:#ffb020;font-size:10px">📚</span><span style="color:#ddd;flex:1">'+esc(e.subject)+(e.book?' · '+esc(e.book):'')+(e.duration?' · '+e.duration+'分':'')+'</span><span style="color:#888;font-size:10px">'+e.time+'</span></div>';}
+    h+='</div>';
+  }
+  h+='</div>';
 
   // motivational quote
   var quotes=[
