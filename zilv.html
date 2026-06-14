@@ -182,6 +182,8 @@ var data=load('discipline_data',{
   fitness:[],   // {date, name, duration, sets, reps, note, time}
   study:[],     // {date, subject, duration, note, time}
   goals:{fitness:60, study:120}, // 每日目标(分钟)
+  shortGoals:[], // {title, deadline, done}
+  longGoals:[],  // {title, deadline, done}
   alarms:[     // {time, label, days, on}
     {time:'07:00',label:'晨间健身',days:[1,1,1,1,1,1,1],on:true},
     {time:'09:00',label:'开始学习',days:[1,1,1,1,1,0,0],on:true},
@@ -230,54 +232,95 @@ function getTodayMinutes(type){
 function getTodayGoal(type){return data.goals[type]||60;}
 
 // 训练页面（健身+学习合并）
-// 计划页面（每日训练+学习合并日志）
+// 计划页面（每日日志 + 短期目标 + 长期目标）
 function renderTrain(){
   var h='<div class="header"><h1>📋 计划</h1></div>';
-  // 今日摘要卡片
+  // 今日摘要
   var todayFit=getTodayMinutes('fitness'),todayStudy=getTodayMinutes('study');
   var fitGoal=getTodayGoal('fitness'),studyGoal=getTodayGoal('study');
-  var fitPct=Math.min(100,Math.round(todayFit/fitGoal*100));
-  var studyPct=Math.min(100,Math.round(todayStudy/getTodayGoal('study')*100));
+  var fitPct=Math.min(100,Math.round(todayFit/fitGoal*100)),studyPct=Math.min(100,Math.round(todayStudy/studyGoal*100));
   h+='<div class="prog-card" style="margin-bottom:10px;border-color:rgba(59,130,246,.3)">'+
     '<div style="font-size:12px;color:#aaa;margin-bottom:10px">📅 今日进度</div>'+
     '<div style="display:flex;gap:12px">'+
-      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>💪 健身</span><span style="color:#3b82f6">'+todayFit+'/'+fitGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div></div>'+
-      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>📚 学习</span><span style="color:#ffb020">'+todayStudy+'/'+studyGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div></div>'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>💪</span><span style="color:#3b82f6">'+todayFit+'/'+fitGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div></div>'+
+      '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>📚</span><span style="color:#ffb020">'+todayStudy+'/'+studyGoal+'分</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div></div>'+
     '</div>'+
     '<div style="display:flex;gap:8px;margin-top:10px">'+
       '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px" onclick="openModal(\'fitness\')">+ 健身</button>'+
       '<button class="btn btn-purple" style="flex:1;padding:8px;font-size:12px;background:#ffb020" onclick="openModal(\'study\')">+ 学习</button>'+
     '</div></div>';
-  var allDates={};data.fitness.forEach(function(e){allDates[e.date]=1;});data.study.forEach(function(e){allDates[e.date]=1;});
-  var dates=Object.keys(allDates).sort().reverse();
-  if(dates.length===0){h+='<div class="empty" style="padding:40px">还没有任何记录 ✨</div>';}
-  else{
-    for(var di=0;di<dates.length;di++){
-      var ds=dates[di],fits=data.fitness.filter(function(e){return e.date===ds;}),studies=data.study.filter(function(e){return e.date===ds;});
-      var totalMin=fits.reduce(function(s,e){return s+(e.duration||0);},0)+studies.reduce(function(s,e){return s+(e.duration||0);},0);
-      var d=new Date(ds),dows=['周日','周一','周二','周三','周四','周五','周六'],isT=ds===today;
-      h+='<div class="prog-card" style="'+(isT?'border-color:#3b82f6;':'')+'margin-bottom:8px">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div>'+
-        '<span style="font-weight:600;color:#fff;font-size:14px">'+(d.getMonth()+1)+'月'+d.getDate()+'日</span>'+
-        '<span style="color:#888;font-size:11px;margin-left:6px">'+dows[d.getDay()]+'</span>'+
-        (isT?'<span style="background:#3b82f6;color:#fff;padding:1px 7px;border-radius:10px;font-size:9px;margin-left:6px">今天</span>':'')+
-        '</div><span style="font-size:11px;color:#888">'+(totalMin>0?totalMin+'分钟':'')+'</span></div>';
-      for(var fi=0;fi<fits.length;fi++){var e=fits[fi];
-        h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'+
-          '<span style="background:rgba(59,130,246,.15);padding:1px 7px;border-radius:8px;color:#3b82f6;font-size:9px;flex-shrink:0">💪</span>'+
-          '<span style="color:#ddd;flex:1">'+esc(e.name)+(e.bodyPart?' · '+e.bodyPart:'')+'</span>'+
-          (e.sets?'<span style="color:#888">'+e.sets+'组'+(e.reps?'×'+e.reps:'')+'</span>':'')+
-          (e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
-      for(var si=0;si<studies.length;si++){var e=studies[si];
-        h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'+
-          '<span style="background:rgba(255,176,32,.15);padding:1px 7px;border-radius:8px;color:#ffb020;font-size:9px;flex-shrink:0">📚</span>'+
-          '<span style="color:#ddd;flex:1">'+esc(e.subject)+(e.book?' · '+esc(e.book):'')+'</span>'+
-          (e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
-      h+='</div>';
-    }
-  }
+
+  // 三选项卡
+  h+='<div class="prog-card" style="padding:0;overflow:hidden;margin-bottom:14px">'+
+    '<div style="display:flex;background:#0f0f1a">'+
+      '<div class="ptab active" data-pt="daily" onclick="switchPTab(this)" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#3b82f6;border-bottom:2px solid #3b82f6;cursor:pointer">📅 每日</div>'+
+      '<div class="ptab" data-pt="short" onclick="switchPTab(this)" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer">🎯 短期</div>'+
+      '<div class="ptab" data-pt="long" onclick="switchPTab(this)" style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer">🏆 长期</div>'+
+    '</div>'+
+    '<div class="pcontent" id="pc-daily" style="padding:12px">'+buildDailyLog()+'</div>'+
+    '<div class="pcontent" id="pc-short" style="padding:12px;display:none">'+buildGoals('shortGoals','🎯 短期目标','本周或本月内')+'</div>'+
+    '<div class="pcontent" id="pc-long" style="padding:12px;display:none">'+buildGoals('longGoals','🏆 长期目标','月度或年度')+'</div>'+
+  '</div>';
   document.getElementById('app').innerHTML=h;
 }
+
+window.switchPTab=function(el){
+  var ts=document.querySelectorAll('.ptab');for(var i=0;i<ts.length;i++){ts[i].style.color='#555';ts[i].style.borderBottomColor='transparent';ts[i].classList.remove('active');}
+  el.style.color='#3b82f6';el.style.borderBottomColor='#3b82f6';el.classList.add('active');
+  var pt=el.getAttribute('data-pt');
+  ['daily','short','long'].forEach(function(id){document.getElementById('pc-'+id).style.display=pt===id?'block':'none';});
+};
+
+function buildDailyLog(){
+  var h='';
+  var allDates={};data.fitness.forEach(function(e){allDates[e.date]=1;});data.study.forEach(function(e){allDates[e.date]=1;});
+  var dates=Object.keys(allDates).sort().reverse();
+  if(dates.length===0)return '<div class="empty">还没有任何记录 ✨</div>';
+  for(var di=0;di<dates.length;di++){
+    var ds=dates[di],fits=data.fitness.filter(function(e){return e.date===ds;}),studies=data.study.filter(function(e){return e.date===ds;});
+    var totalMin=fits.reduce(function(s,e){return s+(e.duration||0);},0)+studies.reduce(function(s,e){return s+(e.duration||0);},0);
+    var d=new Date(ds),dows=['周日','周一','周二','周三','周四','周五','周六'],isT=ds===today;
+    h+='<div style="'+(isT?'background:rgba(59,130,246,.05);border-radius:8px;padding:8px;':'padding:8px;')+'margin-bottom:4px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:600;color:#fff;font-size:13px">'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+dows[d.getDay()]+'</span>'+
+      (isT?'<span style="background:#3b82f6;color:#fff;padding:1px 7px;border-radius:10px;font-size:9px">今天</span>':'')+
+      '<span style="font-size:10px;color:#888">'+(totalMin>0?totalMin+'分钟':'')+'</span></div>';
+    for(var fi=0;fi<fits.length;fi++){var e=fits[fi];
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px"><span style="background:rgba(59,130,246,.15);padding:1px 6px;border-radius:6px;color:#3b82f6;font-size:9px;flex-shrink:0">💪</span><span style="color:#ddd;flex:1">'+esc(e.name)+(e.bodyPart?' · '+e.bodyPart:'')+'</span>'+(e.sets?'<span style="color:#888">'+e.sets+'组'+(e.reps?'×'+e.reps:'')+'</span>':'')+(e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
+    for(var si=0;si<studies.length;si++){var e=studies[si];
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px"><span style="background:rgba(255,176,32,.15);padding:1px 6px;border-radius:6px;color:#ffb020;font-size:9px;flex-shrink:0">📚</span><span style="color:#ddd;flex:1">'+esc(e.subject)+(e.book?' · '+esc(e.book):'')+'</span>'+(e.duration?'<span style="color:#888">'+e.duration+'分</span>':'')+'</div>';}
+    h+='</div>';
+  }
+  return h;
+}
+
+function buildGoals(key,title,sub){
+  var goals=data[key]||[];
+  var h='<div style="font-size:11px;color:#888;margin-bottom:8px">'+sub+'</div>';
+  h+='<button class="btn btn-outline" style="width:100%;padding:10px;margin-bottom:8px" onclick="addGoal(\''+key+'\')">+ 添加目标</button>';
+  if(goals.length===0)h+='<div class="empty">还没有目标，添加一个吧 🎯</div>';
+  else{
+    for(var i=0;i<goals.length;i++){
+      var g=goals[i];
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#0f0f1a;border-radius:8px;margin-bottom:6px">'+
+        '<div style="width:20px;height:20px;border-radius:50%;border:2px solid '+(g.done?'#4caf50':'#555')+';background:'+(g.done?'#4caf50':'transparent')+';flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px" onclick="toggleGoal(\''+key+'\','+i+')">'+(g.done?'✓':'')+'</div>'+
+        '<div style="flex:1"><div style="font-size:13px;color:'+(g.done?'#888':'#fff')+';'+(g.done?'text-decoration:line-through':'')+'">'+esc(g.title)+'</div>'+
+        (g.deadline?'<div style="font-size:10px;color:#888">截止: '+g.deadline+'</div>':'')+'</div>'+
+        '<span style="font-size:14px;color:#ff3860;cursor:pointer;padding:4px" onclick="deleteGoal(\''+key+'\','+i+')">✕</span>'+
+      '</div>';
+    }
+  }
+  return h;
+}
+
+window.addGoal=function(key){
+  var title=prompt('输入目标标题：');
+  if(!title||!title.trim())return;
+  var deadline=prompt('截止日期 (选填，如 7月1日)：')||'';
+  data[key].push({title:title.trim(),deadline:deadline,done:false});
+  persist();renderTrain();
+};
+window.toggleGoal=function(key,i){data[key][i].done=!data[key][i].done;persist();renderTrain();};
+window.deleteGoal=function(key,i){data[key].splice(i,1);persist();renderTrain();};
 
 // 动力页面
 function renderMotive(){
