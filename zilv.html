@@ -16,7 +16,7 @@ body{
   background:#0f0f1a;color:#e0e0e0;min-height:100vh;
   -webkit-tap-highlight-color:transparent;
 }
-.app{max-width:500px;margin:0 auto;padding:16px;padding-bottom:100px}
+.app{max-width:500px;margin:0 auto;padding:16px;padding-top:max(30px,env(safe-area-inset-top,20px));padding-bottom:100px}
 
 /* header */
 .header{display:flex;justify-content:space-between;align-items:center;padding:20px 0 14px}
@@ -244,24 +244,28 @@ function renderToday(){
   }
   h+='</div>';
 
-  // 健身进度
-  h+='<div class="sec"><div class="sec-hd"><div class="sec-title">💪 今日健身</div><span style="color:#888;font-size:12px">'+fitMin+'/'+fitGoal+' 分钟</span></div>';
-  h+='<div class="prog-card"><div class="prog-row"><span class="prog-label">完成度</span><span class="prog-val" style="color:'+(fitPct>=100?'#4caf50':'#3b82f6')+'">'+fitPct+'%</span></div><div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div>';
-  var fits=getTodayEntries('fitness');
-  if(fits.length===0)h+='<div class="empty">还没有记录，点击下方 + 添加</div>';
-  else for(var i=0;i<fits.length;i++){var e=fits[i];h+='<div class="entry-card" onclick="editEntry(\'fitness\','+i+')"><div class="entry-top"><span class="entry-name">'+esc(e.name)+'</span><span class="entry-time">'+e.time+'</span></div><div class="entry-detail"><span>'+e.duration+'分钟</span>'+(e.bodyPart?'<span>'+e.bodyPart+'</span>':'')+(e.sets?'<span>'+e.sets+'组 × '+(e.reps||0)+'次</span>':'')+'<span class="entry-tag fitness">健身</span></div></div>';}
-  h+='</div></div>';
-
-  // 学习进度
-  h+='<div class="sec"><div class="sec-hd"><div class="sec-title">📚 今日学习</div><span style="color:#888;font-size:12px">'+studyMin+'/'+studyGoal+' 分钟</span></div>';
-  h+='<div class="prog-card"><div class="prog-row"><span class="prog-label">完成度</span><span class="prog-val" style="color:'+(studyPct>=100?'#4caf50':'#ffb020')+'">'+studyPct+'%</span></div><div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div>';
-  var studies=getTodayEntries('study');
-  if(studies.length===0)h+='<div class="empty">还没有记录，点击下方 + 添加</div>';
-  else for(var i=0;i<studies.length;i++){var e=studies[i];h+='<div class="entry-card" onclick="editEntry(\'study\','+i+')"><div class="entry-top"><span class="entry-name">'+esc(e.subject)+'</span><span class="entry-time">'+e.time+'</span></div><div class="entry-detail"><span>'+e.duration+'分钟</span>'+(e.book?'<span>📖 '+esc(e.book.slice(0,20))+'</span>':'')+(e.note?'<span>'+esc(e.note.slice(0,30))+'</span>':'')+'<span class="entry-tag study">学习</span></div></div>';}
-  h+='</div></div>';
-
-  // quick add buttons
-  h+='<div style="display:flex;gap:10px"><button class="btn btn-purple" onclick="openModal(\'fitness\')">+ 记录健身</button><button class="btn btn-outline" onclick="openModal(\'study\')">+ 记录学习</button></div>';
+  // 自律大模块
+  var todayTab='fitness'; // 默认显示健身
+  h+='<div class="prog-card" style="padding:0;overflow:hidden;margin-bottom:14px">'+
+    '<div style="display:flex;background:#0f0f1a">'+
+      '<div class="ztab active" data-zt="fitness" onclick="switchZTab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#3b82f6;border-bottom:2px solid #3b82f6;cursor:pointer;transition:all .2s">💪 健身</div>'+
+      '<div class="ztab" data-zt="study" onclick="switchZTab(this)" style="flex:1;text-align:center;padding:12px;font-size:14px;font-weight:600;color:#555;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s">📚 学习</div>'+
+    '</div>'+
+    // 健身内容
+    '<div class="zcontent" id="zc-fitness" style="padding:14px">'+
+      '<div class="prog-row"><span class="prog-label">完成度</span><span class="prog-val" style="color:'+(fitPct>=100?'#4caf50':'#3b82f6')+'">'+fitMin+'/'+fitGoal+'分钟 ('+fitPct+'%)</span></div>'+
+      '<div class="prog-bar-wrap"><div class="prog-bar fit" style="width:'+fitPct+'%"></div></div>'+
+      (function(){var fits=getTodayEntries('fitness');if(fits.length===0)return'<div class="empty">还没有健身记录</div>';var r='';for(var i=0;i<fits.length;i++){var e=fits[i];r+='<div class="entry-card" onclick="editEntry(\'fitness\','+i+')"><div class="entry-top"><span class="entry-name">'+esc(e.name)+'</span><span class="entry-time">'+e.time+'</span></div><div class="entry-detail">'+(e.bodyPart?'<span>'+e.bodyPart+'</span>':'')+(e.sets?'<span>'+e.sets+'组 × '+(e.reps||0)+'次</span>':'')+(e.duration?'<span>'+e.duration+'分钟</span>':'')+'<span class="entry-tag fitness">健身</span></div></div>';}return r;})()+
+      '<button class="btn btn-purple" style="margin-top:8px;width:100%;padding:10px" onclick="openModal(\'fitness\')">+ 记录健身</button>'+
+    '</div>'+
+    // 学习内容
+    '<div class="zcontent" id="zc-study" style="padding:14px;display:none">'+
+      '<div class="prog-row"><span class="prog-label">完成度</span><span class="prog-val" style="color:'+(studyPct>=100?'#4caf50':'#ffb020')+'">'+studyMin+'/'+studyGoal+'分钟 ('+studyPct+'%)</span></div>'+
+      '<div class="prog-bar-wrap"><div class="prog-bar study" style="width:'+studyPct+'%"></div></div>'+
+      (function(){var studies=getTodayEntries('study');if(studies.length===0)return'<div class="empty">还没有学习记录</div>';var r='';for(var i=0;i<studies.length;i++){var e=studies[i];r+='<div class="entry-card" onclick="editEntry(\'study\','+i+')"><div class="entry-top"><span class="entry-name">'+esc(e.subject)+'</span><span class="entry-time">'+e.time+'</span></div><div class="entry-detail">'+(e.book?'<span>📖 '+esc(e.book.slice(0,20))+'</span>':'')+(e.duration?'<span>'+e.duration+'分钟</span>':'')+(e.note?'<span>'+esc(e.note.slice(0,20))+'</span>':'')+'<span class="entry-tag study">学习</span></div></div>';}return r;})()+
+      '<button class="btn btn-purple" style="margin-top:8px;width:100%;padding:10px;background:#ffb020" onclick="openModal(\'study\')">+ 记录学习</button>'+
+    '</div>'+
+  '</div>';
 
   // motivational quote
   var quotes=[
@@ -774,6 +778,14 @@ window.closeModal=closeModal;
 window.saveEntry=saveEntry;
 window.deleteEntry=deleteEntry;
 window.selectBodyPart=selectBodyPart;
+window.switchZTab=function(el){
+  var tabs=document.querySelectorAll('.ztab');
+  for(var i=0;i<tabs.length;i++){tabs[i].style.color='#555';tabs[i].style.borderBottomColor='transparent';tabs[i].classList.remove('active');}
+  el.style.color='#3b82f6';el.style.borderBottomColor='#3b82f6';el.classList.add('active');
+  var zt=el.getAttribute('data-zt');
+  document.getElementById('zc-fitness').style.display=zt==='fitness'?'block':'none';
+  document.getElementById('zc-study').style.display=zt==='study'?'block':'none';
+};
 window.setGoal=setGoal;
 window.toggleAlarm=toggleAlarm;
 window.saveAlarm=saveAlarm;
