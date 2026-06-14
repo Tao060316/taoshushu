@@ -430,13 +430,13 @@ function openModal(type,idx){
       h+='<span class="day-chip" data-bp="'+bodyParts[i]+'" style="min-width:44px;height:32px;font-size:11px;'+(sel?'background:#3b82f6;color:#fff;border-color:#3b82f6':'')+'" onclick="selectBodyPart(this)">'+bodyParts[i]+'</span>';
     }
     h+='</div>';
-    h+='<div class="modal-row"><input id="mfDur" type="number" placeholder="时长(分钟)" value="'+(entry?entry.duration:'')+'"><input id="mfSets" type="number" placeholder="组数" value="'+(entry?(entry.sets||''):'')+'"></div>';
+    h+='<div class="modal-row"><input id="mfDur" type="number" placeholder="时长(分钟,选填)" value="'+(entry?entry.duration:'')+'"><input id="mfSets" type="number" placeholder="组数" value="'+(entry?(entry.sets||''):'')+'"></div>';
     h+='<input id="mfReps" type="number" placeholder="每组次数 (选填)" value="'+(entry?(entry.reps||''):'')+'">';
     h+='<input id="mfFitNote" placeholder="备注 (如: 重量、感受)" value="'+(entry?(entry.note||''):'')+'">';
   }else{
     h+='<input id="mfSubject" placeholder="科目 (如: 英语、编程)" value="'+(entry?esc(entry.subject):'')+'">';
     h+='<input id="mfBook" placeholder="📖 书名/课程名 (选填)" value="'+(entry?(entry.book||''):'')+'">';
-    h+='<input id="mfDur" type="number" placeholder="时长(分钟)" value="'+(entry?entry.duration:'')+'">';
+    h+='<input id="mfDur" type="number" placeholder="时长(分钟,选填)" value="'+(entry?entry.duration:'')+'">';
     h+='<textarea id="mfNote" placeholder="笔记/心得 (选填)">'+(entry?(entry.note||''):'')+'</textarea>';
   }
   h+='<div class="btn-row"><button class="btn btn-outline" onclick="closeModal()">取消</button>'+
@@ -480,7 +480,7 @@ function saveEntry(){
     entry.duration=parseInt(document.getElementById('mfDur').value)||0;
     entry.note=(document.getElementById('mfNote')||{}).value||'';
   }
-  if(entry.duration<=0){toast('请输入时长');return;}
+  // 时长选填，不强制
   if(editIndex>=0)data[type][editIndex]=entry;
   else data[type].push(entry);
   persist();
