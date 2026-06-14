@@ -454,11 +454,12 @@ function toggleAlarm(i){
   renderAlarms();
 }
 
-// 左滑删除（改：滑开停住，点其他地方才收回）
+// 左滑删除（滑开停住，点删除不会弹回）
 var swipeStartX=0,swipeEl=null,swipeOpen=null;
 document.addEventListener('touchstart',function(e){
-  // 之前打开的先收回
-  if(swipeOpen&&swipeOpen!==e.target.closest('.swipe-item')){
+  // 判断点击是否在当前打开的swipe-wrap内
+  var sameWrap=swipeOpen&&swipeOpen.parentElement&&swipeOpen.parentElement.contains(e.target);
+  if(swipeOpen&&!sameWrap){
     swipeOpen.style.transform='translateX(0)';swipeOpen=null;
   }
   var item=e.target.closest('.swipe-item');
